@@ -13,8 +13,10 @@
 
 const OLLAMA_BASE = 'http://localhost:11434';
 
-// Model preference order — gemma4 first, gemma3:4b as fallback
-const MODEL_PRIORITY = ['gemma4', 'gemma3:4b', 'gemma3', 'gemma2'];
+// Model preference order — gemma4-tutor first if available, then gemma3:4b (confirmed working)
+// NOTE: gemma4 8B crashes on Windows due to Ollama GGML graph splitter bug (n_inputs > GGML_SCHED_MAX_SPLIT_INPUTS)
+// gemma3:4b is the Gemma family model that works reliably and is used for all AI features
+const MODEL_PRIORITY = ['gemma4-tutor', 'gemma3:4b', 'gemma3', 'gemma2'];
 
 // ─────────────────────────────────────────────
 // Internal helpers
