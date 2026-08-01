@@ -9,10 +9,12 @@
 
 ---
 
-## 🚀 Live Demo & Deployment
+## 🚀 Live Demo & Documentation
 
 - **Live Vercel Cloud Link**: [https://maevein-tutor.vercel.app](https://maevein-tutor.vercel.app)
 - **GitHub Repository**: [https://github.com/N-i-k-e-t/maevein-tutor.git](https://github.com/N-i-k-e-t/maevein-tutor.git)
+- **📊 Pitch Deck / Presentation**: [PRESENTATION.md](file:///c:/Users/niket/Downloads/gemma-hackathon-t2/PRESENTATION.md)
+- **📐 System Architecture & Design**: [ARCHITECTURE.md](file:///c:/Users/niket/Downloads/gemma-hackathon-t2/ARCHITECTURE.md)
 
 ---
 
