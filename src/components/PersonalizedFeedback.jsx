@@ -222,54 +222,82 @@ export default function PersonalizedFeedback({ evaluationResult, onRetake, onVie
       </h3>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem', marginBottom: '2.5rem' }}>
-        {result.evaluations.map((item, idx) => (
-          <div key={idx} className="glass-card" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.875rem', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>
-                  Q{idx + 1}. {item.question}
-                </h4>
-                <div style={{ padding: '0.45rem 0.8rem', background: '#f8fafc', borderRadius: '8px', borderLeft: '3px solid #6366f1', fontSize: '0.85rem', color: '#334155' }}>
-                  <strong>Your answer:</strong> "{String(item.userAnswer).substring(0, 120)}{String(item.userAnswer).length > 120 ? '...' : ''}"
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem', flexShrink: 0 }}>
-                <span className={`badge ${item.status === 'correct' ? 'badge-green' : item.status === 'partial' ? 'badge-amber' : 'badge-rose'}`}>
-                  {(item.status || 'scored').toUpperCase()}
-                </span>
-                {item.scorePercentage !== undefined && (
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{item.scorePercentage}%</span>
-                )}
-              </div>
-            </div>
+        {result.evaluations.map((item, idx) => {
+          const isUnanswered = item.status === 'unanswered' || !item.userAnswer || item.userAnswer === '(No answer provided)' || item.userAnswer === '(Unanswered / Left Blank)';
+          const matchedList = item.matchedConcepts || [];
+          const missingList = item.missingConcepts || [];
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '0.875rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: '#065f46', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
-                  <CheckCircle2 size={15} /> What you did well
-                </div>
-                <div style={{ fontSize: '0.83rem', color: '#047857', lineHeight: 1.5 }}>{item.whatYouDidWell}</div>
-              </div>
-
-              {item.status !== 'correct' && (
-                <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '0.875rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: '#9f1239', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
-                    <AlertTriangle size={15} /> Concept to improve
+          return (
+            <div key={idx} className="glass-card" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.875rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>
+                    Q{idx + 1}. {item.question}
+                  </h4>
+                  <div style={{ padding: '0.45rem 0.8rem', background: isUnanswered ? '#f1f5f9' : '#f8fafc', borderRadius: '8px', borderLeft: `3px solid ${isUnanswered ? '#94a3b8' : '#6366f1'}`, fontSize: '0.85rem', color: isUnanswered ? '#64748b' : '#334155' }}>
+                    <strong>Your answer:</strong> {isUnanswered ? <em style={{ color: '#94a3b8' }}>(Unanswered / Left Blank)</em> : `"${String(item.userAnswer).substring(0, 140)}${String(item.userAnswer).length > 140 ? '...' : ''}"`}
                   </div>
-                  <div style={{ fontSize: '0.83rem', color: '#be123c', lineHeight: 1.5 }}>{item.conceptToImprove}</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem', flexShrink: 0 }}>
+                  <span className={`badge ${isUnanswered ? 'badge-slate' : item.status === 'correct' ? 'badge-green' : item.status === 'partial' ? 'badge-amber' : 'badge-rose'}`} style={isUnanswered ? { background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' } : {}}>
+                    {isUnanswered ? 'UNANSWERED' : (item.status || 'scored').toUpperCase()}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{isUnanswered ? '0%' : `${item.scorePercentage}%`}</span>
+                </div>
+              </div>
+
+              {/* Source Concept Match Breakdown Chips */}
+              {(matchedList.length > 0 || missingList.length > 0) && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.75rem 0.875rem', marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
+                    Source Text Concept Match Analysis
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    {matchedList.map((concept, cIdx) => (
+                      <span key={`m-${cIdx}`} style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '0.2rem 0.55rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <CheckCircle2 size={12} /> {concept}
+                      </span>
+                    ))}
+                    {missingList.map((concept, mIdx) => (
+                      <span key={`miss-${mIdx}`} style={{ background: '#fff1f2', color: '#be123c', border: '1px solid #fecdd3', padding: '0.2rem 0.55rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <AlertTriangle size={12} /> {concept}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '0.875rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: '#1e40af', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
-                  <Lightbulb size={15} /> Next step
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ background: isUnanswered ? '#f8fafc' : '#ecfdf5', border: `1px solid ${isUnanswered ? '#e2e8f0' : '#a7f3d0'}`, borderRadius: '10px', padding: '0.875rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: isUnanswered ? '#64748b' : '#065f46', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
+                    <CheckCircle2 size={15} /> {isUnanswered ? 'Status' : 'What you did well'}
+                  </div>
+                  <div style={{ fontSize: '0.83rem', color: isUnanswered ? '#64748b' : '#047857', lineHeight: 1.5 }}>
+                    {isUnanswered ? 'Question was left blank. No marks awarded.' : item.whatYouDidWell}
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.83rem', color: '#1d4ed8', lineHeight: 1.5 }}>{item.suggestion}</div>
+
+                {item.status !== 'correct' && (
+                  <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '0.875rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: '#9f1239', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
+                      <AlertTriangle size={15} /> Concept to improve
+                    </div>
+                    <div style={{ fontSize: '0.83rem', color: '#be123c', lineHeight: 1.5 }}>{item.conceptToImprove}</div>
+                  </div>
+                )}
+
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '0.875rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: '#1e40af', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
+                    <Lightbulb size={15} /> Next step
+                  </div>
+                  <div style={{ fontSize: '0.83rem', color: '#1d4ed8', lineHeight: 1.5 }}>{item.suggestion}</div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
 
       {/* Action Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '3rem', flexWrap: 'wrap' }}>

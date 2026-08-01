@@ -152,89 +152,112 @@ export function evaluateStudentAnswers(studentAnswers, questions) {
 
   questions.forEach(q => {
     maxPointsTotal += q.marks;
-    const userAnswer = studentAnswers[q.id] || '';
+    const rawAnswer = (studentAnswers[q.id] || '').trim();
+    const isAnswerEmpty = !rawAnswer;
 
     if (q.type === 'MCQ') {
       const correctOpt = q.options.find(o => o.correct);
-      const isCorrect = userAnswer === correctOpt?.id;
+      const isCorrect = !isAnswerEmpty && rawAnswer === correctOpt?.id;
+      const status = isAnswerEmpty ? 'unanswered' : (isCorrect ? 'correct' : 'incorrect');
       const score = isCorrect ? q.marks : 0;
       totalPointsEarned += score;
 
       detailedEvaluations.push({
         questionId: q.id,
         question: q.question,
-        userAnswer: userAnswer ? `Option (${userAnswer})` : 'Not Attempted',
-        correctAnswer: `Option (${correctOpt.id}) - ${correctOpt.text}`,
-        status: isCorrect ? 'correct' : 'incorrect',
+        userAnswer: isAnswerEmpty ? '(Unanswered / Left Blank)' : `Option (${rawAnswer})`,
+        correctAnswer: `Option (${correctOpt?.id}) - ${correctOpt?.text}`,
+        status,
         scorePercentage: isCorrect ? 100 : 0,
-        whatYouDidWell: isCorrect
-          ? `Correctly identified option (${correctOpt.id}) as the accurate answer.`
-          : 'You made an attempt on this question.',
-        conceptToImprove: isCorrect
-          ? 'Maintain this solid factual recall for core definitions.'
-          : `Review the concept: ${q.explanation}`,
-        suggestion: isCorrect
-          ? 'Try applying this concept to complex problem scenarios.'
-          : 'Double check option definitions before locking in your choice.'
+        whatYouDidWell: isAnswerEmpty
+          ? 'No option selected for this MCQ.'
+          : (isCorrect ? `Correctly identified option (${correctOpt?.id}).` : 'You made an attempt on this question.'),
+        conceptToImprove: isAnswerEmpty
+          ? `Concept missed: ${(q.keyConcepts || []).join(', ')}`
+          : (isCorrect ? 'Maintain this solid factual recall for core definitions.' : `Review the concept: ${q.explanation}`),
+        suggestion: isAnswerEmpty
+          ? 'Make sure to select an option for every MCQ.'
+          : (isCorrect ? 'Try applying this concept to complex problem scenarios.' : 'Double check option definitions before locking in your choice.'),
+        matchedConcepts: isCorrect ? (q.keyConcepts || []) : [],
+        missingConcepts: isCorrect ? [] : (q.keyConcepts || [])
       });
     } else {
-      const text = (userAnswer || '').toLowerCase();
-      let matchCount = 0;
-      const concepts = q.keyConcepts || ['key concepts', 'definition'];
+      if (isAnswerEmpty) {
+        detailedEvaluations.push({
+          questionId: q.id,
+          question: q.question,
+          userAnswer: '(Unanswered / Left Blank)',
+          correctAnswer: q.sampleAnswer || 'See key concepts.',
+          status: 'unanswered',
+          scorePercentage: 0,
+          whatYouDidWell: 'No response submitted for this question.',
+          conceptToImprove: `Question was skipped. Required concepts: ${(q.keyConcepts || []).join(', ')}`,
+          suggestion: 'Attempt all questions to test your conceptual understanding.',
+          matchedConcepts: [],
+          missingConcepts: q.keyConcepts || []
+        });
+      } else {
+        const text = rawAnswer.toLowerCase();
+        const concepts = q.keyConcepts || ['key concepts', 'definition'];
+        const matched = [];
+        const missing = [];
 
-      concepts.forEach(concept => {
-        const words = concept.split(' ');
-        if (words.some(w => text.includes(w.toLowerCase()))) {
-          matchCount++;
-        }
-      });
+        concepts.forEach(concept => {
+          const words = concept.split(' ').filter(w => w.length > 3);
+          if (words.some(w => text.includes(w.toLowerCase()))) {
+            matched.push(concept);
+          } else {
+            missing.push(concept);
+          }
+        });
 
-      let ratio = matchCount / concepts.length;
-      if (text.length > 25 && ratio === 0) ratio = 0.5;
-      if (text.length === 0) ratio = 0;
+        const ratio = concepts.length === 0 ? 0.6 : Math.min(matched.length / concepts.length, 1);
+        const score = Math.round(q.marks * ratio * 10) / 10;
+        totalPointsEarned += score;
 
-      const score = Math.round(q.marks * ratio * 10) / 10;
-      totalPointsEarned += score;
+        let status = 'correct';
+        if (ratio < 0.4) status = 'incorrect';
+        else if (ratio < 0.85) status = 'partial';
 
-      let status = 'correct';
-      if (ratio < 0.4) status = 'incorrect';
-      else if (ratio < 0.85) status = 'partial';
-
-      detailedEvaluations.push({
-        questionId: q.id,
-        question: q.question,
-        userAnswer: userAnswer || '(No answer provided)',
-        correctAnswer: q.sampleAnswer,
-        status,
-        scorePercentage: Math.round(ratio * 100),
-        whatYouDidWell: status === 'correct'
-          ? 'Great job! You clearly articulated the core principles with precise terminology.'
-          : status === 'partial'
-          ? 'You captured the main idea and correctly mentioned key aspects of the answer.'
-          : 'You initiated a response focusing on the topic.',
-        conceptToImprove: status === 'correct'
-          ? 'No major gaps. You can refine your answer with a real-world edge case example.'
-          : status === 'partial'
-          ? `Elaborate more on: ${concepts.join(', ')} to achieve full score.`
-          : `Needs improvement in covering core definitions: ${concepts.join(', ')}.`,
-        suggestion: status === 'correct'
-          ? 'Keep up the excellent work! Try tackling higher Bloom taxonomy synthesis tasks.'
-          : 'Review the lecture notes on this unit and try rewriting your answer.'
-      });
+        detailedEvaluations.push({
+          questionId: q.id,
+          question: q.question,
+          userAnswer: rawAnswer,
+          correctAnswer: q.sampleAnswer || 'See key concepts.',
+          status,
+          scorePercentage: Math.round(ratio * 100),
+          whatYouDidWell: status === 'correct'
+            ? 'Great job! You clearly articulated the core principles with precise terminology.'
+            : status === 'partial'
+            ? `Captured key aspects: ${matched.join(', ')}`
+            : 'Response submitted focusing on the topic.',
+          conceptToImprove: status === 'correct'
+            ? 'No major gaps. You can refine your answer with a real-world edge case example.'
+            : status === 'partial'
+            ? `Elaborate more on: ${missing.join(', ')} to achieve full score.`
+            : `Needs improvement in covering core definitions: ${missing.join(', ')}.`,
+          suggestion: status === 'correct'
+            ? 'Keep up the excellent work! Try tackling higher Bloom taxonomy synthesis tasks.'
+            : 'Review the lecture notes on this unit and try rewriting your answer.',
+          matchedConcepts: matched,
+          missingConcepts: missing
+        });
+      }
     }
   });
 
-  const overallScorePercentage = Math.round((totalPointsEarned / maxPointsTotal) * 100) || 85;
+  const overallScorePercentage = maxPointsTotal > 0 ? Math.round((totalPointsEarned / maxPointsTotal) * 100) : 0;
 
   return {
     overallScore: overallScorePercentage,
     totalPoints: totalPointsEarned,
     maxPoints: maxPointsTotal,
     breakdown: {
-      correctPercent: overallScorePercentage >= 80 ? 70 : 60,
-      partiallyCorrectPercent: 15,
-      incorrectPercent: overallScorePercentage >= 80 ? 15 : 25
+      correctPercent: detailedEvaluations.filter(e => e.status === 'correct').length,
+      partiallyCorrectPercent: detailedEvaluations.filter(e => e.status === 'partial').length,
+      incorrectPercent: detailedEvaluations.filter(e => e.status === 'incorrect' || e.status === 'unanswered').length
     },
     evaluations: detailedEvaluations
   };
 }
+

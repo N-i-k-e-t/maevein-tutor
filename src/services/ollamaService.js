@@ -214,10 +214,25 @@ Respond with ONLY valid JSON — no markdown fences, no commentary.`;
  * @returns {object}             - Evaluation result object
  */
 export async function evaluateAnswerViaGemma(question, studentAnswer, model) {
+  const answer = (studentAnswer || '').trim();
+
+  // Strict check: If answer is empty or blank, return 0% Unanswered immediately (no LLM call)
+  if (!answer) {
+    return {
+      status: 'unanswered',
+      score_percent: 0,
+      understood: [],
+      gaps: question.keyConcepts || [],
+      whatYouDidWell: 'No response submitted for this question.',
+      conceptToImprove: `Question was skipped. Required concepts: ${(question.keyConcepts || []).join(', ')}`,
+      suggestion: 'Attempt all questions to test your conceptual understanding.',
+      matched_concepts: [],
+      missing_concepts: question.keyConcepts || []
+    };
+  }
+
   const resolvedModel = model || await detectGemmaModel();
   if (!resolvedModel) throw new Error('No Gemma model available.');
-
-  const answer = (studentAnswer || '').trim() || '(no answer submitted)';
 
   const userPrompt = `SOURCE MATERIAL EXCERPT:
 """
@@ -235,19 +250,20 @@ ${answer}
 
 Evaluate the student's answer against the key concepts and source material. \
 Do not penalize grammar or phrasing — grade understanding only. \
+Identify which exact key concepts were correctly demonstrated (matched_concepts) and which were missing or wrong (missing_concepts). \
 Respond with ONLY this JSON, no other text:
 
 {
   "status": "correct",
   "score_percent": 85,
-  "understood": ["concept the student got right"],
-  "gaps": ["concept missing or wrong — empty array if none"],
+  "matched_concepts": ["concept student demonstrated"],
+  "missing_concepts": ["concept missing or wrong"],
   "whatYouDidWell": "1-2 sentences on what was correct",
   "conceptToImprove": "specific concept gap with explanation",
   "suggestion": "one concrete actionable next step"
 }
 
-"status" must be exactly one of: "correct", "partial", "incorrect"
+"status" must be exactly one of: "correct", "partial", "incorrect", "unanswered"
 "score_percent" is an integer 0-100.`;
 
   const messages = [
@@ -279,61 +295,82 @@ export async function evaluateAllAnswersViaGemma(studentAnswers, questions, mode
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
     maxPointsTotal += q.marks;
-    const userAnswer = studentAnswers[q.id] || '';
+    const rawAnswer = (studentAnswers[q.id] || '').trim();
+    const isAnswerEmpty = !rawAnswer;
 
     if (q.type === 'MCQ') {
       // MCQ: evaluate locally — no LLM needed
       const correctOpt = (q.options || []).find(o => o.correct);
-      const isCorrect = userAnswer === correctOpt?.id;
+      const isCorrect = !isAnswerEmpty && rawAnswer === correctOpt?.id;
+      const status = isAnswerEmpty ? 'unanswered' : (isCorrect ? 'correct' : 'incorrect');
       const score = isCorrect ? q.marks : 0;
       totalPointsEarned += score;
 
       detailedEvaluations.push({
         questionId: q.id,
         question: q.question,
-        userAnswer: userAnswer ? `Option (${userAnswer})` : 'Not Attempted',
+        userAnswer: isAnswerEmpty ? '(Unanswered / Left Blank)' : `Option (${rawAnswer})`,
         correctAnswer: correctOpt ? `Option (${correctOpt.id}) — ${correctOpt.text}` : 'N/A',
-        status: isCorrect ? 'correct' : 'incorrect',
+        status,
         scorePercentage: isCorrect ? 100 : 0,
-        whatYouDidWell: isCorrect
-          ? `Correctly identified option (${correctOpt?.id}).`
-          : 'You attempted the question.',
-        conceptToImprove: isCorrect
-          ? 'Solid recall — try applying this to edge cases.'
-          : `Review: ${q.explanation || (q.keyConcepts || []).join(', ')}`,
-        suggestion: isCorrect
-          ? 'Explore how this concept applies in complex scenarios.'
-          : 'Re-read the source material and try again.',
+        whatYouDidWell: isAnswerEmpty
+          ? 'No option selected for this MCQ.'
+          : (isCorrect ? `Correctly identified option (${correctOpt?.id}).` : 'Attempted the question.'),
+        conceptToImprove: isAnswerEmpty
+          ? `Concept missed: ${(q.keyConcepts || []).join(', ')}`
+          : (isCorrect ? 'Solid recall — try applying this to edge cases.' : `Review: ${q.explanation || (q.keyConcepts || []).join(', ')}`),
+        suggestion: isAnswerEmpty
+          ? 'Make sure to select an option for every MCQ.'
+          : (isCorrect ? 'Explore how this concept applies in complex scenarios.' : 'Re-read the source material and try again.'),
+        matchedConcepts: isCorrect ? (q.keyConcepts || []) : [],
+        missingConcepts: isCorrect ? [] : (q.keyConcepts || []),
         _evaluatedBy: 'local',
       });
     } else {
       // Open-ended: call Gemma for conceptual evaluation
       let gemmaEval = null;
-      try {
-        gemmaEval = await evaluateAnswerViaGemma(q, userAnswer, resolvedModel);
-      } catch (err) {
-        console.warn(`Gemma eval failed for q${i + 1}:`, err.message);
-        // Graceful degradation: use keyword matching
-        gemmaEval = localFallbackEval(q, userAnswer);
+      if (isAnswerEmpty) {
+        gemmaEval = {
+          status: 'unanswered',
+          score_percent: 0,
+          whatYouDidWell: 'No response submitted for this question.',
+          conceptToImprove: `Question was skipped. Required concepts: ${(q.keyConcepts || []).join(', ')}`,
+          suggestion: 'Attempt all questions to test your conceptual understanding.',
+          matched_concepts: [],
+          missing_concepts: q.keyConcepts || []
+        };
+      } else {
+        try {
+          gemmaEval = await evaluateAnswerViaGemma(q, rawAnswer, resolvedModel);
+        } catch (err) {
+          console.warn(`Gemma eval failed for q${i + 1}:`, err.message);
+          // Graceful degradation: use keyword matching
+          gemmaEval = localFallbackEval(q, rawAnswer);
+        }
       }
 
       const scorePercent = gemmaEval.score_percent ?? 0;
       const score = Math.round(q.marks * (scorePercent / 100) * 10) / 10;
       totalPointsEarned += score;
 
-      const status = gemmaEval.status || (scorePercent >= 80 ? 'correct' : scorePercent >= 40 ? 'partial' : 'incorrect');
+      const status = gemmaEval.status || (isAnswerEmpty ? 'unanswered' : scorePercent >= 80 ? 'correct' : scorePercent >= 40 ? 'partial' : 'incorrect');
+
+      const matchedConcepts = gemmaEval.matched_concepts || gemmaEval.understood || [];
+      const missingConcepts = gemmaEval.missing_concepts || gemmaEval.gaps || (status === 'correct' ? [] : q.keyConcepts || []);
 
       detailedEvaluations.push({
         questionId: q.id,
         question: q.question,
-        userAnswer: userAnswer || '(No answer provided)',
+        userAnswer: rawAnswer || '(No answer provided)',
         correctAnswer: q.sampleAnswer || 'See key concepts.',
         status,
         scorePercentage: scorePercent,
-        whatYouDidWell: gemmaEval.whatYouDidWell || (gemmaEval.understood || []).join(', ') || 'Response recorded.',
-        conceptToImprove: gemmaEval.conceptToImprove || (gemmaEval.gaps || []).join('; ') || 'Review key concepts.',
+        whatYouDidWell: gemmaEval.whatYouDidWell || (matchedConcepts.length > 0 ? `Demonstrated: ${matchedConcepts.join(', ')}` : 'Response recorded.'),
+        conceptToImprove: gemmaEval.conceptToImprove || (missingConcepts.length > 0 ? `Needs work on: ${missingConcepts.join(', ')}` : 'Review key concepts.'),
         suggestion: gemmaEval.suggestion || 'Re-read the source material.',
-        _evaluatedBy: gemmaEval._fallback ? 'local-fallback' : resolvedModel,
+        matchedConcepts,
+        missingConcepts,
+        _evaluatedBy: isAnswerEmpty ? 'strict-blank-check' : (gemmaEval._fallback ? 'local-fallback' : resolvedModel),
       });
     }
 
@@ -351,32 +388,58 @@ export async function evaluateAllAnswersViaGemma(studentAnswers, questions, mode
     breakdown: {
       correctPercent: detailedEvaluations.filter(e => e.status === 'correct').length,
       partialPercent: detailedEvaluations.filter(e => e.status === 'partial').length,
-      incorrectPercent: detailedEvaluations.filter(e => e.status === 'incorrect').length,
+      incorrectPercent: detailedEvaluations.filter(e => e.status === 'incorrect' || e.status === 'unanswered').length,
     },
     evaluations: detailedEvaluations,
     _model: resolvedModel,
   };
 }
 
+
 // ─────────────────────────────────────────────
 // Local fallback evaluation (no Gemma needed)
 // ─────────────────────────────────────────────
 function localFallbackEval(q, userAnswer) {
-  const text = (userAnswer || '').toLowerCase();
+  const text = (userAnswer || '').trim().toLowerCase();
   const concepts = q.keyConcepts || [];
-  let matchCount = 0;
+
+  if (!text) {
+    return {
+      score_percent: 0,
+      status: 'unanswered',
+      _fallback: true,
+      whatYouDidWell: 'No response submitted for this question.',
+      conceptToImprove: `Question was skipped. Required concepts: ${concepts.join(', ')}`,
+      suggestion: 'Attempt all questions to test your understanding.',
+      matched_concepts: [],
+      missing_concepts: concepts,
+    };
+  }
+
+  const matched = [];
+  const missing = [];
+
   concepts.forEach(c => {
-    if (c.split(' ').some(w => w.length > 3 && text.includes(w.toLowerCase()))) matchCount++;
+    const words = c.split(' ').filter(w => w.length > 3);
+    if (words.some(w => text.includes(w.toLowerCase()))) {
+      matched.push(c);
+    } else {
+      missing.push(c);
+    }
   });
-  const ratio = text.length === 0 ? 0 : concepts.length === 0 ? 0.6 : Math.min(matchCount / concepts.length, 1);
-  if (text.length > 30 && ratio === 0) return { score_percent: 40, status: 'partial', _fallback: true,
-    whatYouDidWell: 'You provided a response.', conceptToImprove: `Cover: ${concepts.join(', ')}`, suggestion: 'Review source material.' };
+
+  const ratio = concepts.length === 0 ? 0.6 : Math.min(matched.length / concepts.length, 1);
+  const status = ratio >= 0.8 ? 'correct' : ratio >= 0.4 ? 'partial' : 'incorrect';
+
   return {
     score_percent: Math.round(ratio * 100),
-    status: ratio >= 0.8 ? 'correct' : ratio >= 0.4 ? 'partial' : 'incorrect',
+    status,
     _fallback: true,
-    whatYouDidWell: ratio > 0.5 ? 'Covered key concepts.' : 'Attempted the question.',
-    conceptToImprove: ratio < 1 ? `Needs more depth on: ${concepts.slice(0, 2).join(', ')}` : 'Great answer.',
+    whatYouDidWell: matched.length > 0 ? `Covered concepts: ${matched.join(', ')}` : 'Attempted the question.',
+    conceptToImprove: missing.length > 0 ? `Needs more depth on: ${missing.join(', ')}` : 'Great answer!',
     suggestion: ratio < 0.8 ? 'Re-read the relevant section and expand your answer.' : 'Challenge yourself with harder questions.',
+    matched_concepts: matched,
+    missing_concepts: missing,
   };
 }
+

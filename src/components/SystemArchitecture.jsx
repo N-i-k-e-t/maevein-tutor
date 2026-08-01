@@ -299,15 +299,32 @@ npm run dev
             ))}
           </div>
 
+          <div style={{ background: 'linear-gradient(135deg, #e0e7ff, #f3e8ff)', border: '1px solid #c7d2fe', borderRadius: '14px', padding: '1.25rem 1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ fontWeight: 800, fontSize: '1rem', color: '#312e81', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Zap size={18} style={{ color: '#4f46e5' }} /> 📡 Share Live Demo Over Local Wi-Fi Network
+            </div>
+            <p style={{ color: '#4338ca', fontSize: '0.875rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+              Anyone connected to the same Wi-Fi router can access your live local demo on their mobile phone, tablet, or laptop!
+            </p>
+            <div className="code-block" style={{ background: '#0f172a', color: '#38bdf8' }}>{`# 1. Start dev server with --host flag
+npm run dev
+
+# 2. Open on any device connected to the same Wi-Fi:
+http://192.168.1.7:3000
+
+# (Local IP auto-detected on Windows/Mac/Linux)`}</div>
+          </div>
+
           <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '14px', padding: '1.25rem 1.5rem' }}>
             <strong style={{ color: '#92400e' }}>⚡ System Requirements:</strong>
             <ul style={{ marginTop: '0.5rem', marginLeft: '1.25rem', color: '#78350f', fontSize: '0.875rem', lineHeight: 2 }}>
-              <li>Gemma 4 4B — 8 GB RAM minimum (CPU only), 4 GB with GPU</li>
+              <li>Gemma 4 4B / Gemma3-Tutor — 8 GB RAM minimum (CPU only), 4 GB with GPU</li>
               <li>Gemma 4 12B — 16 GB RAM recommended</li>
               <li>macOS 13+, Ubuntu 20.04+, Windows 10/11</li>
               <li>Node.js 18+ for the Maevein Tutor UI</li>
             </ul>
           </div>
+
         </div>
       )}
 
