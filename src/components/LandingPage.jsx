@@ -12,16 +12,16 @@ export default function LandingPage({ onGetStarted }) {
           <Sparkles size={16} /> Powered by Gemma 4 by Google DeepMind
         </div>
 
-        <h1 style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem' }} className="hero-gradient-text">
+        <h1 style={{ fontSize: 'clamp(2.2rem, 6vw, 3.5rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem' }} className="hero-gradient-text">
           Teach Less. <br />Impact More.
         </h1>
 
-        <p style={{ fontSize: '1.2rem', color: '#475569', lineHeight: 1.6, marginBottom: '2.5rem' }}>
-          Upload your study material, generate questions across Bloom’s Taxonomy, evaluate student answers with concept-level precision, and deliver actionable personalized feedback—all processed locally with <strong>Gemma 4</strong>.
+        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: '#475569', lineHeight: 1.6, marginBottom: '2.5rem' }}>
+          Upload your syllabus or lecture notes, generate questions across Bloom's Taxonomy, evaluate student answers with concept-level precision, and get actionable personalized feedback—all processed locally with <strong>Gemma 4</strong>.
         </p>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" style={{ padding: '0.9rem 2rem', fontSize: '1.1rem' }} onClick={onGetStarted}>
+          <button className="btn btn-primary" style={{ padding: '0.9rem 2rem', fontSize: 'clamp(1rem, 2.5vw, 1.1rem)' }} onClick={onGetStarted}>
             Get Started <ArrowRight size={20} />
           </button>
         </div>
@@ -64,8 +64,8 @@ export default function LandingPage({ onGetStarted }) {
       </div>
 
       {/* Feature Showcase Grid */}
-      <div style={{ marginTop: '4rem' }}>
-        <h2 style={{ textAlign: 'center', fontSize: '2rem', fontWeight: 700, marginBottom: '2.5rem' }}>
+      <div style={{ marginTop: '3rem' }}>
+        <h2 style={{ textAlign: 'center', fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '2rem' }}>
           Complete AI-Driven Educational Workflow
         </h2>
 
@@ -75,9 +75,9 @@ export default function LandingPage({ onGetStarted }) {
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
               <BookOpen size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>1. Upload & Generate</h3>
-            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.5 }}>
-              Upload any syllabus, lecture notes, or competition rules PDF. Gemma 4 automatically synthesizes key concepts and creates high-quality MCQs, short answer, and long answer questions mapped to Bloom’s Taxonomy.
+            <h3 style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.25rem)', fontWeight: 700, marginBottom: '0.5rem' }}>1. Upload & Generate</h3>
+            <p style={{ color: '#64748b', fontSize: 'clamp(0.875rem, 2vw, 0.95rem)', lineHeight: 1.6 }}>
+              Upload any syllabus or lecture notes PDF. Gemma 4 synthesizes key concepts and creates high-quality MCQs, short answer, and long answer questions mapped to Bloom's Taxonomy.
             </p>
           </div>
 
@@ -85,9 +85,9 @@ export default function LandingPage({ onGetStarted }) {
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f3e8ff', color: '#9333ea', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
               <BrainCircuit size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>2. Intelligent Evaluation</h3>
-            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.5 }}>
-              Move beyond simple keyword matching. Gemma 4 evaluates student responses against conceptual understanding, grading accuracy, nuances, and core subject principles.
+            <h3 style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.25rem)', fontWeight: 700, marginBottom: '0.5rem' }}>2. Intelligent Evaluation</h3>
+            <p style={{ color: '#64748b', fontSize: 'clamp(0.875rem, 2vw, 0.95rem)', lineHeight: 1.6 }}>
+              Move beyond keyword matching. Gemma 4 evaluates student responses against conceptual understanding, grading accuracy, nuances, and core subject principles.
             </p>
           </div>
 
@@ -95,8 +95,8 @@ export default function LandingPage({ onGetStarted }) {
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
               <CheckCircle2 size={24} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>3. Actionable Feedback</h3>
-            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.5 }}>
+            <h3 style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.25rem)', fontWeight: 700, marginBottom: '0.5rem' }}>3. Actionable Feedback</h3>
+            <p style={{ color: '#64748b', fontSize: 'clamp(0.875rem, 2vw, 0.95rem)', lineHeight: 1.6 }}>
               Students receive a comprehensive breakdown highlighting exact strengths, precise concepts requiring improvement, and customized learning recommendations for growth.
             </p>
           </div>

@@ -11,7 +11,7 @@ export default function Header({ currentStep, setCurrentStep, onOpenSettings }) 
 
   return (
     <header className="app-header">
-      <div style={{ maxWidth: '1300px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ maxWidth: '1300px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
         
         {/* Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => setCurrentStep('landing')}>
@@ -30,14 +30,14 @@ export default function Header({ currentStep, setCurrentStep, onOpenSettings }) 
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', background: 'linear-gradient(135deg, #1e1b4b, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 800, fontFamily: 'Outfit, sans-serif', background: 'linear-gradient(135deg, #1e1b4b, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Maevein Tutor
               </span>
-              <span style={{ fontSize: '0.65rem', background: '#e0e7ff', color: '#4338ca', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.6rem', background: '#e0e7ff', color: '#4338ca', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                 Powered by Gemma 4
               </span>
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+            <p style={{ fontSize: '0.7rem', color: '#64748b', margin: 0 }}>
               AI-Powered Personalized Learning Assistant
             </p>
           </div>
@@ -54,37 +54,37 @@ export default function Header({ currentStep, setCurrentStep, onOpenSettings }) 
                 onClick={() => setCurrentStep(step.id)}
               >
                 <span className="step-number">{step.number}</span>
-                <span>{step.label}</span>
+                <span className="step-label-text" style={{ display: 'inline' }}>{step.label}</span>
               </button>
             );
           })}
         </nav>
 
         {/* View Switches & Action Badges */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
           <button
             className={`btn btn-secondary ${currentStep === 'insights' ? 'active' : ''}`}
             onClick={() => setCurrentStep('insights')}
-            style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem' }}
+            style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', minHeight: '38px' }}
           >
-            <BarChart3 size={16} /> Insights
+            <BarChart3 size={15} /> <span className="step-label-text">Insights</span>
           </button>
           
           <button
             className={`btn btn-secondary ${currentStep === 'architecture' ? 'active' : ''}`}
             onClick={() => setCurrentStep('architecture')}
-            style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem' }}
+            style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', minHeight: '38px' }}
           >
-            <Cpu size={16} /> System Architecture
+            <Cpu size={15} /> <span className="step-label-text">Architecture</span>
           </button>
 
           <button
             className="btn btn-secondary"
             onClick={onOpenSettings}
-            style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem' }}
+            style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', minHeight: '38px' }}
             title="Gemma 4 Model Settings"
           >
-            <Sliders size={16} /> Model Settings
+            <Sliders size={15} /> <span className="step-label-text">Settings</span>
           </button>
         </div>
 
