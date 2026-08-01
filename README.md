@@ -5,16 +5,23 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Local & Offline First](https://img.shields.io/badge/Privacy-100%25%20Local%20%26%20Private-emerald.svg)]()
 
+> **Single Source of Truth**: See [`MAEVEIN_TUTOR_MASTER_CONTEXT.md`](./MAEVEIN_TUTOR_MASTER_CONTEXT.md) for complete technical architecture, Gemma 4 deep-dive, branding, presentation deck, and demo storyboard.
+
 **Maevein Tutor (GemmaTutor)** is an end-to-end AI-powered personalized learning and assessment assistant built on top of **Gemma 4** by Google DeepMind. Designed for educators and students, Maevein Tutor transforms raw study materials, lecture notes, and competition rules into interactive assessments, intelligent evaluations, and concept-level feedback.
 
 ---
 
-## 🚀 Live Demo & Documentation
+## 🚀 Live Demo & Master Documentation
 
+- **Single Source of Truth Document**: [`MAEVEIN_TUTOR_MASTER_CONTEXT.md`](./MAEVEIN_TUTOR_MASTER_CONTEXT.md)
+- **Project Assets Directory**: [`Project Assets/`](./Project%20Assets/)
 - **Live Vercel Cloud Link**: [https://maevein-tutor.vercel.app](https://maevein-tutor.vercel.app)
 - **GitHub Repository**: [https://github.com/N-i-k-e-t/maevein-tutor.git](https://github.com/N-i-k-e-t/maevein-tutor.git)
-- **📊 Pitch Deck / Presentation**: [PRESENTATION.md](file:///c:/Users/niket/Downloads/gemma-hackathon-t2/PRESENTATION.md)
-- **📐 System Architecture & Design**: [ARCHITECTURE.md](file:///c:/Users/niket/Downloads/gemma-hackathon-t2/ARCHITECTURE.md)
+- **📊 Pitch Deck / Presentation**: [`Project Assets/Presentation/PRESENTATION_DECK.md`](./Project%20Assets/Presentation/PRESENTATION_DECK.md)
+- **📐 System Architecture & Design**: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- **🏆 Kaggle Competition Writeup**: [`Project Assets/Kaggle/KAGGLE_SUBMISSION_WRITEUP.md`](./Project%20Assets/Kaggle/KAGGLE_SUBMISSION_WRITEUP.md)
+- **🎬 4-Minute Demo Storyboard**: [`Project Assets/Demo Video/DEMO_VIDEO_STORYBOARD.md`](./Project%20Assets/Demo%20Video/DEMO_VIDEO_STORYBOARD.md)
+
 
 ---
 
