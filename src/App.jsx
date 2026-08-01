@@ -13,6 +13,29 @@ import ModelSettingsModal from './components/ModelSettingsModal';
 import { SAMPLE_DOCUMENTS, INITIAL_QUESTIONS, generateQuestionsFromDoc } from './services/gemmaEngine';
 import { evaluateAllAnswersViaGemma, detectGemmaModel } from './services/ollamaService';
 
+const INITIAL_TEST_HISTORY = [
+  {
+    id: 'hist-1',
+    studentName: 'Alex Patel',
+    docTitle: 'Machine Learning - Unit 1.pdf',
+    date: 'Aug 1, 2026',
+    overallScore: 85,
+    totalQuestions: 4,
+    weakConcepts: ['gradient descent', 'learning rate'],
+    masteredConcepts: ['supervised learning', 'K-Means']
+  },
+  {
+    id: 'hist-2',
+    studentName: 'Alex Patel',
+    docTitle: 'Biology - Photosynthesis.pdf',
+    date: 'Aug 1, 2026',
+    overallScore: 70,
+    totalQuestions: 4,
+    weakConcepts: ['Calvin Cycle', 'RuBisCO'],
+    masteredConcepts: ['light dependent reactions', 'thylakoid']
+  }
+];
+
 export default function App() {
   const [currentStep, setCurrentStep] = useState('landing');
   const [selectedDoc, setSelectedDoc] = useState(SAMPLE_DOCUMENTS[0]);
@@ -22,6 +45,24 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evalProgress, setEvalProgress] = useState({ done: 0, total: 0 });
+
+  const [studentName, setStudentNameState] = useState(() => {
+    return localStorage.getItem('maevein_student_name') || 'Alex Patel';
+  });
+
+  const [testHistory, setTestHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('maevein_test_history');
+      return saved ? JSON.parse(saved) : INITIAL_TEST_HISTORY;
+    } catch {
+      return INITIAL_TEST_HISTORY;
+    }
+  });
+
+  const setStudentName = (name) => {
+    setStudentNameState(name);
+    localStorage.setItem('maevein_student_name', name);
+  };
 
   // Update questions whenever document changes
   const handleSelectDoc = (doc) => {
@@ -40,10 +81,30 @@ export default function App() {
     setCurrentStep('generate');
   };
 
-
-
   const handleStartTest = () => {
     setCurrentStep('test');
+  };
+
+  const recordTestHistory = (result) => {
+    const weakList = Array.from(new Set((result.evaluations || []).flatMap(e => e.missingConcepts || [])));
+    const masterList = Array.from(new Set((result.evaluations || []).flatMap(e => e.matchedConcepts || [])));
+    
+    const entry = {
+      id: 'hist-' + Date.now(),
+      studentName,
+      docTitle: selectedDoc?.title || 'Study Material',
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      overallScore: result.overallScore || 0,
+      totalQuestions: questions.length,
+      weakConcepts: weakList,
+      masteredConcepts: masterList
+    };
+
+    setTestHistory(prev => {
+      const updated = [entry, ...prev];
+      try { localStorage.setItem('maevein_test_history', JSON.stringify(updated)); } catch { /* ignore */ }
+      return updated;
+    });
   };
 
   const handleSubmitTest = async (answers) => {
@@ -67,6 +128,7 @@ export default function App() {
         result = evaluateStudentAnswers(answers, questions);
       }
       setEvaluationResult(result);
+      recordTestHistory(result);
       setCurrentStep('evaluate-dash');
     } catch (err) {
       console.error('Evaluation error:', err);
@@ -74,11 +136,13 @@ export default function App() {
       const { evaluateStudentAnswers } = await import('./services/gemmaEngine');
       const result = evaluateStudentAnswers(answers, questions);
       setEvaluationResult(result);
+      recordTestHistory(result);
       setCurrentStep('evaluate-dash');
     } finally {
       setIsEvaluating(false);
     }
   };
+
 
   const handleEvaluationComplete = () => {
     setCurrentStep('feedback');
@@ -92,6 +156,7 @@ export default function App() {
         currentStep={currentStep}
         setCurrentStep={setCurrentStep}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        studentName={studentName}
       />
 
       {/* Main Content Step Renderer */}
@@ -108,13 +173,14 @@ export default function App() {
           />
         )}
 
-
         {currentStep === 'generate' && (
           <QuestionGenerator
             questions={questions}
             setQuestions={setQuestions}
             selectedDoc={selectedDoc}
             onStartTest={handleStartTest}
+            studentName={studentName}
+            testHistory={testHistory}
           />
         )}
 
@@ -122,6 +188,8 @@ export default function App() {
           <StudentTest
             questions={questions}
             onSubmitTest={handleSubmitTest}
+            studentName={studentName}
+            setStudentName={setStudentName}
           />
         )}
 
@@ -164,8 +232,9 @@ export default function App() {
         )}
 
         {currentStep === 'insights' && (
-          <LearningInsights />
+          <LearningInsights studentName={studentName} testHistory={testHistory} />
         )}
+
 
         {currentStep === 'deck' && (
           <PresentationDeck onStartDemo={() => setCurrentStep('upload')} />

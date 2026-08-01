@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Plus, Download, Play, CheckCircle, Filter, Cpu, Wifi, WifiOff, Loader } from 'lucide-react';
+import { Sparkles, Plus, Download, Play, CheckCircle, Filter, Cpu, Wifi, WifiOff, Loader, User } from 'lucide-react';
 import { generateQuestionsFromDoc } from '../services/gemmaEngine';
 import { generateQuestionsViaGemma, detectGemmaModel } from '../services/ollamaService';
 
-export default function QuestionGenerator({ questions, setQuestions, selectedDoc, onStartTest }) {
+export default function QuestionGenerator({ questions, setQuestions, selectedDoc, onStartTest, studentName = 'Alex Patel', testHistory = [] }) {
   const [activeTab, setActiveTab] = useState('All');
   const [bloomsFilter, setBloomsFilter] = useState('All');
   const [isGeneratingMore, setIsGeneratingMore] = useState(false);
@@ -11,6 +11,8 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
   const [gemmaModel, setGemmaModel] = useState(null);
   const [gemmaError, setGemmaError] = useState('');
   const [isRegenerating, setIsRegenerating] = useState(false);
+
+  const pastWeakConcepts = Array.from(new Set(testHistory.flatMap(h => h.weakConcepts || [])));
 
   // Detect Gemma on mount
   useEffect(() => {
@@ -30,13 +32,14 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
     return true;
   });
 
-  // Re-generate ALL questions via real Gemma 4
+  // Re-generate ALL questions via real Gemma 4 adaptively
   const handleRegenerateWithGemma = async () => {
     if (!selectedDoc?.rawText) return;
     setIsRegenerating(true);
     setGemmaError('');
     try {
-      const newQs = await generateQuestionsViaGemma(selectedDoc.rawText, 5, gemmaModel);
+      const studentProfile = { studentName, weakConcepts: pastWeakConcepts };
+      const newQs = await generateQuestionsViaGemma(selectedDoc.rawText, 5, gemmaModel, studentProfile);
       setQuestions(newQs);
     } catch (err) {
       setGemmaError(err.message);
@@ -44,6 +47,7 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
       setIsRegenerating(false);
     }
   };
+
 
   // Generate one more question via Gemma (or fallback)
   const handleGenerateMore = async () => {
@@ -109,7 +113,7 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
     <div className="container">
 
       {/* Top Title Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
           <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700, color: '#0f172a' }}>
             Generated Questions
@@ -132,6 +136,29 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
           </button>
         </div>
       </div>
+
+      {/* Student Adaptive Profile Banner */}
+      <div style={{ background: 'linear-gradient(135deg, #eef2ff, #fae8ff)', border: '1px solid #c7d2fe', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <User size={18} style={{ color: '#4f46e5' }} />
+          <div>
+            <span style={{ fontWeight: 800, fontSize: '0.875rem', color: '#1e1b4b' }}>Adaptive Profile: {studentName}</span>
+            <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: '#6366f1', background: '#e0e7ff', padding: '0.15rem 0.5rem', borderRadius: '999px' }}>
+              {testHistory?.length || 0} previous tests tracked
+            </span>
+          </div>
+        </div>
+        {pastWeakConcepts.length > 0 ? (
+          <div style={{ fontSize: '0.78rem', color: '#6b21a8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Sparkles size={14} /> Gemma 4 Reinforcing: {pastWeakConcepts.slice(0, 3).join(', ')}
+          </div>
+        ) : (
+          <div style={{ fontSize: '0.78rem', color: '#047857', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <CheckCircle size={14} /> Initial Baseline — Ready for Adaptive Learning
+          </div>
+        )}
+      </div>
+
 
       {/* Gemma Status Banner */}
       <div className="glass-card" style={{ padding: '0.85rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>

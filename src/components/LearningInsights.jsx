@@ -1,36 +1,35 @@
 import React from 'react';
-import { TrendingUp, Award, BookCheck, Target, ArrowUpRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { TrendingUp, Award, BookCheck, Target, ArrowUpRight, CheckCircle2, AlertCircle, User, Clock, FileText } from 'lucide-react';
 
-export default function LearningInsights() {
-  const scoreHistory = [
-    { day: 'Mon', score: 65 },
-    { day: 'Tue', score: 72 },
-    { day: 'Wed', score: 70 },
-    { day: 'Thu', score: 80 },
-    { day: 'Fri', score: 85 },
-    { day: 'Sat', score: 82 },
-    { day: 'Sun', score: 92 }
-  ];
+export default function LearningInsights({ studentName = 'Alex Patel', testHistory = [] }) {
+  const totalTests = testHistory.length;
+  const avgScore = totalTests > 0
+    ? Math.round(testHistory.reduce((sum, h) => sum + (h.overallScore || 0), 0) / totalTests)
+    : 0;
+
+  const allWeak = Array.from(new Set(testHistory.flatMap(h => h.weakConcepts || [])));
+  const allMastered = Array.from(new Set(testHistory.flatMap(h => h.masteredConcepts || [])));
 
   return (
     <div className="container" style={{ maxWidth: '1000px' }}>
       
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      {/* Header with Student Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+            <User size={14} /> Student Profile: {studentName}
+          </div>
           <h2 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#0f172a' }}>
-            Learning Insights
+            Learning Insights & History
           </h2>
           <p style={{ color: '#64748b', fontSize: '1.05rem' }}>
-            Track student performance and progress over time
+            Tracking {studentName}'s historical assessment progress & adaptive learning patterns
           </p>
         </div>
 
-        <select style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 600 }}>
-          <option>This Week</option>
-          <option>This Month</option>
-          <option>All Time</option>
-        </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e0e7ff', color: '#4338ca', padding: '0.45rem 1rem', borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
+          <Clock size={16} /> Persistent History Saved
+        </div>
       </div>
 
       {/* 4 Stat Summary Cards */}
@@ -41,7 +40,7 @@ export default function LearningInsights() {
             Tests Taken
           </div>
           <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#1e1b4b' }}>
-            6
+            {totalTests}
           </div>
         </div>
 
@@ -49,31 +48,108 @@ export default function LearningInsights() {
           <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
             Average Score
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#4f46e5' }}>
-            82%
+          <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: avgScore >= 75 ? '#10b981' : '#4f46e5' }}>
+            {avgScore}%
           </div>
         </div>
 
         <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
           <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-            Improvement
+            Mastered Concepts
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
-            +18% <ArrowUpRight size={24} />
+          <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#10b981' }}>
+            {allMastered.length}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>vs last week</div>
         </div>
 
         <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
           <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-            Strong Topics
+            Active Weak Areas
           </div>
           <div style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#9333ea' }}>
-            8
+            {allWeak.length}
           </div>
         </div>
 
       </div>
+
+      {/* Historical Test Attempts Table */}
+      <div className="glass-card" style={{ padding: '1.75rem', marginBottom: '2.5rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FileText size={20} style={{ color: '#4f46e5' }} /> Assessment History Log ({testHistory.length})
+        </h3>
+
+        {testHistory.length > 0 ? (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Date</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Study Material / PDF</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Score</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Mastered Concepts</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Reinforcement Areas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {testHistory.map((item, idx) => (
+                  <tr key={item.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>
+                      {item.date}
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#0f172a' }}>
+                      {item.docTitle}
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <span style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '999px',
+                        fontWeight: 800,
+                        fontSize: '0.8rem',
+                        background: item.overallScore >= 75 ? '#dcfce7' : item.overallScore >= 50 ? '#fef3c7' : '#ffe4e6',
+                        color: item.overallScore >= 75 ? '#15803d' : item.overallScore >= 50 ? '#b45309' : '#be123c'
+                      }}>
+                        {item.overallScore}%
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        {(item.masteredConcepts || []).length > 0 ? (
+                          item.masteredConcepts.slice(0, 2).map((m, mIdx) => (
+                            <span key={mIdx} style={{ background: '#ecfdf5', color: '#047857', padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                              ✓ {m}
+                            </span>
+                          ))
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.75rem' }}>None</span>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        {(item.weakConcepts || []).length > 0 ? (
+                          item.weakConcepts.slice(0, 2).map((w, wIdx) => (
+                            <span key={wIdx} style={{ background: '#fff1f2', color: '#be123c', padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                              • {w}
+                            </span>
+                          ))
+                        ) : (
+                          <span style={{ color: '#059669', fontSize: '0.75rem', fontWeight: 600 }}>All clear ✓</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+            No assessment history recorded yet. Complete a test to track adaptive progress!
+          </div>
+        )}
+      </div>
+
 
       {/* Interactive Score Trend Line Chart */}
       <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem' }}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookOpen, Sparkles, Sliders, Cpu, BarChart3, Presentation } from 'lucide-react';
 
-export default function Header({ currentStep, setCurrentStep, onOpenSettings }) {
+export default function Header({ currentStep, setCurrentStep, onOpenSettings, studentName }) {
   const steps = [
     { id: 'upload', number: 1, label: 'Upload PDF' },
     { id: 'generate', number: 2, label: 'Generate Questions' },
@@ -29,19 +29,25 @@ export default function Header({ currentStep, setCurrentStep, onOpenSettings }) 
             <img src="/logo.png" alt="Maevein Tutor Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 800, fontFamily: 'Outfit, sans-serif', background: 'linear-gradient(135deg, #1e1b4b, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Maevein Tutor
               </span>
               <span style={{ fontSize: '0.6rem', background: '#e0e7ff', color: '#4338ca', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                 Powered by Gemma 4
               </span>
+              {studentName && (
+                <span style={{ fontSize: '0.65rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: 700 }}>
+                  👤 {studentName}
+                </span>
+              )}
             </div>
             <p style={{ fontSize: '0.7rem', color: '#64748b', margin: 0 }}>
               AI-Powered Personalized Learning Assistant
             </p>
           </div>
         </div>
+
 
         {/* Workflow Stepper */}
         <nav className="nav-stepper">

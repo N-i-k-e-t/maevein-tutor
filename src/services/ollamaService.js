@@ -118,9 +118,10 @@ Respond with ONLY valid JSON — no markdown fences, no commentary.`;
  * @param {string} docText    - Raw text from uploaded document
  * @param {number} numQ       - Number of questions to generate (default 5)
  * @param {string} model      - Ollama model name (auto-detected if omitted)
+ * @param {object} studentProfile - Optional student profile for personalization
  * @returns {Array}           - Array of question objects ready for the app
  */
-export async function generateQuestionsViaGemma(docText, numQ = 5, model = null) {
+export async function generateQuestionsViaGemma(docText, numQ = 5, model = null, studentProfile = null) {
   const resolvedModel = model || await detectGemmaModel();
   if (!resolvedModel) {
     throw new Error('No Gemma model found in Ollama. Run: ollama pull gemma3:4b');
@@ -128,10 +129,17 @@ export async function generateQuestionsViaGemma(docText, numQ = 5, model = null)
 
   // Truncate very long documents (keep first ~3000 chars to stay within context)
   const excerpt = docText.length > 3000
-    ? docText.substring(0, 3000) + '\n[...document truncated for context limit...]'
+    ? docText.substring(0, 3000) + '...'
     : docText;
 
+  const studentContext = (studentProfile && studentProfile.studentName)
+    ? `\nSTUDENT ADAPTIVE PROFILE (${studentProfile.studentName}):\n` +
+      `Historical Weak Concepts to Reinforce: ${(studentProfile.weakConcepts || []).slice(0, 4).join(', ') || 'General review'}.\n` +
+      `Ensure at least 1-2 questions directly reinforce these weak concepts grounded in the text.`
+    : '';
+
   const userPrompt = `Read the following study material and write exactly ${numQ} questions.
+${studentContext}
 
 For EACH question provide:
 - "type": one of "MCQ", "Short Answer", or "Long Answer"
@@ -165,6 +173,7 @@ MATERIAL:
 """
 ${excerpt}
 """`;
+
 
   const messages = [
     { role: 'system', content: QUESTION_GEN_SYSTEM },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Award, Bold, Italic, Underline, List, ListOrdered, Send } from 'lucide-react';
+import { Clock, Award, Bold, Italic, Underline, List, ListOrdered, Send, User, CheckCircle2 } from 'lucide-react';
 
-export default function StudentTest({ questions, onSubmitTest }) {
+export default function StudentTest({ questions, onSubmitTest, studentName = 'Alex Patel', setStudentName }) {
   const [answers, setAnswers] = useState({});
   const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
   const initialSeconds = Math.max(900, totalMarks * 120); // 2 minutes per mark, minimum 15 mins
@@ -15,7 +15,6 @@ export default function StudentTest({ questions, onSubmitTest }) {
     return () => clearInterval(timer);
   }, [totalMarks, initialSeconds]);
 
-
   const formatTime = (secs) => {
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
@@ -28,11 +27,10 @@ export default function StudentTest({ questions, onSubmitTest }) {
   };
 
   return (
-
     <div className="container" style={{ maxWidth: '950px' }}>
       
       {/* Top Test Header Bar */}
-      <div className="glass-card" style={{ padding: '1.25rem 2rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="glass-card" style={{ padding: '1.25rem 2rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <span className="badge badge-blue" style={{ marginBottom: '0.35rem' }}>Student View</span>
           <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>
@@ -54,6 +52,27 @@ export default function StudentTest({ questions, onSubmitTest }) {
 
         </div>
       </div>
+
+      {/* Student Identity Profile Bar */}
+      <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <User size={18} style={{ color: '#4f46e5' }} />
+          <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>Student Profile:</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <input
+            type="text"
+            value={studentName}
+            onChange={(e) => setStudentName && setStudentName(e.target.value)}
+            placeholder="Enter student name..."
+            style={{ padding: '0.4rem 0.85rem', borderRadius: '8px', border: '1px solid #94a3b8', fontSize: '0.875rem', fontWeight: 600, outline: 'none', background: '#ffffff', minWidth: '180px' }}
+          />
+          <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <CheckCircle2 size={13} /> Saved locally
+          </span>
+        </div>
+      </div>
+
 
       {/* Questions list form */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '3rem' }}>
