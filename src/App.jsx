@@ -8,6 +8,7 @@ import EvaluationDashboard from './components/EvaluationDashboard';
 import PersonalizedFeedback from './components/PersonalizedFeedback';
 import LearningInsights from './components/LearningInsights';
 import SystemArchitecture from './components/SystemArchitecture';
+import PresentationDeck from './components/PresentationDeck';
 import ModelSettingsModal from './components/ModelSettingsModal';
 import { SAMPLE_DOCUMENTS, INITIAL_QUESTIONS } from './services/gemmaEngine';
 import { evaluateAllAnswersViaGemma, detectGemmaModel } from './services/ollamaService';
@@ -149,6 +150,10 @@ export default function App() {
 
         {currentStep === 'insights' && (
           <LearningInsights />
+        )}
+
+        {currentStep === 'deck' && (
+          <PresentationDeck onStartDemo={() => setCurrentStep('upload')} />
         )}
 
         {currentStep === 'architecture' && (

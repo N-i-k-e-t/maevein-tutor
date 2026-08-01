@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Sparkles, Sliders, Cpu, BarChart3, ShieldCheck } from 'lucide-react';
+import { BookOpen, Sparkles, Sliders, Cpu, BarChart3, Presentation } from 'lucide-react';
 
 export default function Header({ currentStep, setCurrentStep, onOpenSettings }) {
   const steps = [
@@ -70,6 +70,14 @@ export default function Header({ currentStep, setCurrentStep, onOpenSettings }) 
             <BarChart3 size={15} /> <span className="step-label-text">Insights</span>
           </button>
           
+          <button
+            className={`btn btn-secondary ${currentStep === 'deck' ? 'active' : ''}`}
+            onClick={() => setCurrentStep('deck')}
+            style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', minHeight: '38px' }}
+          >
+            <Presentation size={15} /> <span className="step-label-text">Deck</span>
+          </button>
+
           <button
             className={`btn btn-secondary ${currentStep === 'architecture' ? 'active' : ''}`}
             onClick={() => setCurrentStep('architecture')}
