@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "projectName": "gemma-hackathon-t2",
+  "userName": "developer",
+  "skillLevel": "intermediate",
+  "outputFolder": ".vibecheck/flow",
+  "planningArtifacts": ".vibecheck\\flow\\planning-artifacts",
+  "implementationArtifacts": ".vibecheck\\flow\\implementation-artifacts",
+  "installedAt": "2026-08-01T18:04:16.903Z",
+  "ide": [
+    "vscode"
+  ]
+}

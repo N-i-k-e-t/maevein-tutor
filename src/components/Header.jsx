@@ -1,0 +1,94 @@
+import React from 'react';
+import { BookOpen, Sparkles, Sliders, Cpu, BarChart3, ShieldCheck } from 'lucide-react';
+
+export default function Header({ currentStep, setCurrentStep, onOpenSettings }) {
+  const steps = [
+    { id: 'upload', number: 1, label: 'Upload PDF' },
+    { id: 'generate', number: 2, label: 'Generate Questions' },
+    { id: 'evaluate-dash', number: 3, label: 'Evaluate Answers' },
+    { id: 'feedback', number: 4, label: 'Personalized Feedback' }
+  ];
+
+  return (
+    <header className="app-header">
+      <div style={{ maxWidth: '1300px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        
+        {/* Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => setCurrentStep('landing')}>
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #4f46e5, #9333ea)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+          }}>
+            <BookOpen size={24} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', background: 'linear-gradient(135deg, #1e1b4b, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                GemmaTutor
+              </span>
+              <span style={{ fontSize: '0.65rem', background: '#e0e7ff', color: '#4338ca', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: 700 }}>
+                Powered by Gemma 4
+              </span>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+              AI-Powered Personalized Learning Assistant
+            </p>
+          </div>
+        </div>
+
+        {/* Workflow Stepper */}
+        <nav className="nav-stepper">
+          {steps.map((step) => {
+            const isActive = currentStep === step.id;
+            return (
+              <button
+                key={step.id}
+                className={`step-item ${isActive ? 'active' : ''}`}
+                onClick={() => setCurrentStep(step.id)}
+              >
+                <span className="step-number">{step.number}</span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* View Switches & Action Badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            className={`btn btn-secondary ${currentStep === 'insights' ? 'active' : ''}`}
+            onClick={() => setCurrentStep('insights')}
+            style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem' }}
+          >
+            <BarChart3 size={16} /> Insights
+          </button>
+          
+          <button
+            className={`btn btn-secondary ${currentStep === 'architecture' ? 'active' : ''}`}
+            onClick={() => setCurrentStep('architecture')}
+            style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem' }}
+          >
+            <Cpu size={16} /> System Architecture
+          </button>
+
+          <button
+            className="btn btn-secondary"
+            onClick={onOpenSettings}
+            style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem' }}
+            title="Gemma 4 Model Settings"
+          >
+            <Sliders size={16} /> Model Settings
+          </button>
+        </div>
+
+      </div>
+    </header>
+  );
+}
