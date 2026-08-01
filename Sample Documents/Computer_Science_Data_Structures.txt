@@ -1,0 +1,31 @@
+DATA STRUCTURES AND ALGORITHMS (CS-301)
+Department of Computer Science & Engineering
+
+1. BINARY SEARCH TREES (BST)
+A Binary Search Tree is a hierarchical node-based data structure where each node contains a key and at most two child pointers (left and right).
+- BST Invariant: For every node N, all keys in N's left subtree are strictly less than N.key, and all keys in N's right subtree are strictly greater than N.key.
+- Asymptotic Time Complexity:
+  - Search, Insertion, Deletion: Average O(log N), Worst-Case O(N) when the tree degenerates into a skewed linked list.
+- Self-Balancing Trees (AVL Trees, Red-Black Trees): Automatically enforce height balance (h <= 2 * log N), guaranteeing strict O(log N) worst-case time complexity.
+
+2. HASH TABLES & COLLISION RESOLUTION
+A Hash Table maps keys to values using a Hash Function H(k) to compute array index slots for O(1) average search, insert, and delete.
+- Load Factor (alpha = n / m): Ratio of elements n to table capacity m. High load factor causes collision degradation.
+- Collision Resolution Strategies:
+  1. Separate Chaining: Each table slot contains a linked list or self-balancing tree storing colliding items.
+  2. Open Addressing: Stores colliding items in alternative empty slots within the array via Linear Probing, Quadratic Probing, or Double Hashing.
+
+3. DYNAMIC PROGRAMMING (DP)
+Dynamic Programming is an algorithm design technique for solving complex optimization problems by breaking them into simpler subproblems.
+- Two Essential Properties:
+  1. Overlapping Subproblems: The problem reuses the same smaller subproblems repeatedly (e.g. Fibonacci numbers).
+  2. Optimal Substructure: An optimal solution to the main problem can be constructed from optimal solutions of its subproblems.
+- DP Approaches:
+  - Top-Down (Memoization): Recursive approach storing subproblem results in a hash table or lookup array.
+  - Bottom-Up (Tabulation): Iterative approach solving subproblems in order of size starting from base cases.
+
+4. GRAPH ALGORITHMS
+- Graph Representation: Adjacency Matrix (O(V^2) space) vs. Adjacency List (O(V + E) space).
+- Breadth-First Search (BFS): Queue-driven traversal for finding shortest paths in unweighted graphs. Time Complexity: O(V + E).
+- Depth-First Search (DFS): Stack/recursion-driven traversal for topological sorting and connected components. Time Complexity: O(V + E).
+- Dijkstra's Algorithm: Priority-queue driven single-source shortest path algorithm for non-negative weighted graphs. Time Complexity: O((V + E) log V).

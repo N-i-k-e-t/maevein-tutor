@@ -1,0 +1,25 @@
+UNIT 1: FUNDAMENTALS OF MACHINE LEARNING
+Course Code: CS-701 | Advanced Artificial Intelligence
+
+1. INTRODUCTION TO MACHINE LEARNING
+Machine learning (ML) is a branch of artificial intelligence focused on building applications that learn from data and improve their accuracy over time without being explicitly programmed.
+
+2. SUPERVISED VS. UNSUPERVISED LEARNING
+- Supervised Learning: Models are trained using labeled datasets where the desired output is known. Common tasks include Classification (predicting discrete labels) and Regression (predicting continuous numerical values). Examples: Linear Regression, Logistic Regression, Support Vector Machines (SVM), Decision Trees.
+- Unsupervised Learning: Models process unlabeled datasets to discover underlying patterns, groupings, or representations. Common tasks include Clustering (e.g., K-Means, Hierarchical Clustering) and Dimensionality Reduction (e.g., Principal Component Analysis / PCA, t-SNE).
+- Semi-Supervised Learning: Combines a small amount of labeled data with a large amount of unlabeled data.
+
+3. OVERFITTING, UNDERFITTING, AND GENERALIZATION
+- Overfitting: Occurs when a machine learning model learns the training data too well, including its noise and outliers. Consequently, the model achieves high accuracy on training data but performs poorly on unseen test data. Mitigation techniques include Regularization (L1 Lasso, L2 Ridge), Cross-Validation, Dropout, and Early Stopping.
+- Underfitting: Occurs when a model is too simple to capture the underlying structure of the data, leading to poor performance on both training and testing datasets.
+- Bias-Variance Tradeoff: High bias leads to underfitting; high variance leads to overfitting.
+
+4. OPTIMIZATION VIA GRADIENT DESCENT
+Gradient Descent is a first-order iterative optimization algorithm used to find local minima of a differentiable cost function.
+- Weight Update Rule: W_new = W_old - (alpha * grad_W(J))
+- Learning Rate (alpha): Hyperparameter controlling the step size at each iteration. If alpha is too small, convergence is slow; if alpha is too large, the algorithm may overshoot or diverge.
+- Variants: Batch Gradient Descent, Stochastic Gradient Descent (SGD), Mini-Batch Gradient Descent.
+
+5. EVALUATION METRICS
+- Classification Metrics: Accuracy = (TP + TN) / Total; Precision = TP / (TP + FP); Recall (Sensitivity) = TP / (TP + FN); F1-Score = 2 * (Precision * Recall) / (Precision + Recall).
+- Regression Metrics: Mean Absolute Error (MAE), Mean Squared Error (MSE), Root Mean Squared Error (RMSE), R-Squared Score.

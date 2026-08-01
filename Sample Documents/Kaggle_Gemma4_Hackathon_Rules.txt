@@ -1,0 +1,22 @@
+KAGGLE GEMMA 4 HACKATHON — OFFICIAL COMPETITION RULES & GUIDELINES
+
+1. COMPETITION OVERVIEW & TRACKS
+The Kaggle Gemma 4 Hackathon challenges global developers and AI researchers to build innovative applications using Google's Gemma model family.
+- Primary Track: AI Education Track — Building AI tools that transform teaching, assessment, personalized learning, and classroom accessibility.
+- Core Requirement: Applications must leverage Gemma models (e.g. Gemma 4) for intelligence, reasoning, or content generation.
+
+2. SUBMISSION REQUIREMENTS
+Each team must submit:
+- Working Demo: A live hosted web app, local downloadable demo, interactive terminal recording, or Kaggle Notebook.
+- Public Code Repository: Complete source code hosted on GitHub with an open-source license (MIT/Apache 2.0).
+- Submission Documentation: Clear explanation of the problem, Gemma model integration, architecture, and user instructions.
+
+3. JUDGING CRITERIA & WEIGHTING
+- Pedagogical Impact & Problem Fit (30%): Extent to which the solution solves a real problem in education.
+- Gemma Model Integration (30%): Meaningful deployment of Gemma 4 as the core reasoning engine rather than a superficial API call.
+- Technical Architecture & Privacy (20%): System robustness, dual-call evaluation reliability, local execution capability, and data privacy.
+- User Experience & Visual Polish (20%): Quality of UI design, mindmap visualizations, responsiveness, and accessibility.
+
+4. LOCAL EXECUTION & HOSTED DEMOS
+- Cloud deployment is optional. Submissions running 100% locally on consumer GPUs (e.g. via Ollama gemma3-tutor) are fully valid and praised for privacy preservation.
+- Local Wi-Fi network sharing allows reviewers to interact with local web apps across mobile and laptop devices.
