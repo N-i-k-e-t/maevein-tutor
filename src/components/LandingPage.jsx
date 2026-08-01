@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Shield, Zap, Target, ArrowRight, CheckCircle2, BookOpen, BrainCircuit } from 'lucide-react';
+import { Sparkles, Shield, Zap, Target, ArrowRight, CheckCircle2, BookOpen, BrainCircuit, Brain, FileText, Award, BarChart3, TrendingUp } from 'lucide-react';
 
 export default function LandingPage({ onGetStarted }) {
   return (
@@ -13,11 +13,16 @@ export default function LandingPage({ onGetStarted }) {
         </div>
 
         <h1 style={{ fontSize: 'clamp(2.2rem, 6vw, 3.5rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem' }} className="hero-gradient-text">
-          Teach Less. <br />Impact More.
+          Your Personal AI Teacher.
         </h1>
 
-        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: '#475569', lineHeight: 1.6, marginBottom: '2.5rem' }}>
-          Upload your syllabus or lecture notes, generate questions across Bloom's Taxonomy, evaluate student answers with concept-level precision, and get actionable personalized feedback—all processed locally with <strong>Gemma 4</strong>.
+        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: '#475569', lineHeight: 1.6, marginBottom: '0.75rem' }}>
+          Maevein Tutor improves <strong>conceptual understanding</strong> — not just assigns marks.
+          Upload any study material and let Gemma 4 create grounded questions, reason over your answers,
+          and build a personalised learning path to close knowledge gaps.
+        </p>
+        <p style={{ fontSize: '0.875rem', color: '#94a3b8', marginBottom: '2.5rem' }}>
+          100% local · Private · No data leaves your machine
         </p>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
