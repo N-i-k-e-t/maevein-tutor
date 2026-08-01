@@ -19,19 +19,19 @@ export default function Header({ currentStep, setCurrentStep, onOpenSettings }) 
             width: '42px',
             height: '42px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #4f46e5, #9333ea)',
+            overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'white',
-            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+            background: '#ffffff'
           }}>
-            <BookOpen size={24} />
+            <img src="/logo.png" alt="Maevein Tutor Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', background: 'linear-gradient(135deg, #1e1b4b, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                GemmaTutor
+                Maevein Tutor
               </span>
               <span style={{ fontSize: '0.65rem', background: '#e0e7ff', color: '#4338ca', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: 700 }}>
                 Powered by Gemma 4

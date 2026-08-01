@@ -1,22 +1,6 @@
-// Gemma 4 Intelligent Processing Engine
+// Maevein Tutor — Gemma 4 Processing Engine
 
 export const SAMPLE_DOCUMENTS = [
-  {
-    id: 'kaggle-rules',
-    title: 'Kaggle Competition Foundational Rules.pdf',
-    size: '1.8 MB',
-    type: 'Competition Rules & Guidelines',
-    rawText: `Competition Rules - Kaggle Competition Foundational Rules
-1. ELIGIBILITY: Registered account holder at Kaggle.com. Age of majority. Not a resident of sanctioned regions (Crimea, DNR/LNR, Cuba, Iran, North Korea). Full compliance with U.S. export controls and sanctions. Employer consent required if representing an entity.
-2. SPONSOR AND HOSTING PLATFORM: Sponsored by named Sponsor, hosted by Kaggle Inc. Kaggle acts as an independent contractor.
-3. COMPETITION PERIOD: Starts from Start Date to Final Submission Deadline. Hurdle deadlines may be introduced. Time zones must be determined by participants.
-4. COMPETITION ENTRY: No purchase necessary. Follow stated instructions. Hand labeling or human prediction of validation/test data is strictly prohibited. Multi-stage competitions require valid submissions at each stage.
-5. INDIVIDUALS AND TEAMS: Single account per individual. Falsifying proxy accounts is prohibited. Teams must confirm membership, max team size applies. Team mergers allowed before deadline if combined submission limits are respected. Private sharing outside teams is strictly forbidden. Public code sharing on Kaggle forums/notebooks is allowed under OSI-approved open source licenses.
-6. SUBMISSION CODE REQUIREMENTS: No private sharing of competition code between separate teams. Open source code used must be OSI-approved with commercial use permitted.
-7. DETERMINING WINNERS: Evaluated by stated metric. Public Leaderboard based on public test set, Private Leaderboard based on private test set determines official winners. Ties broken by earliest submission time.
-8. NOTIFICATION & PRIZES: Winners notified by email. 1-week response time. Prizes net of tax withholdings. 1099 form for US residents. Unanimous team opt-in for custom prize split.
-9. WARRANTY & INDEMNITY: Submissions must be original work without infringing third-party intellectual property.`
-  },
   {
     id: 'ml-unit-1',
     title: 'Machine Learning - Unit 1.pdf',
@@ -39,6 +23,15 @@ Key Concepts:
     rawText: `Photosynthesis is the light-driven biological process used by plants, algae, and cyanobacteria to convert light energy into chemical energy stored in glucose.
 Formula: 6CO2 + 6H2O + Light -> C6H12O6 + 6O2.
 Occurs in the chloroplasts using chlorophyll pigments. Composed of Light-Dependent Reactions (thylakoid membrane) and Calvin Cycle (stroma).`
+  },
+  {
+    id: 'dsa-notes',
+    title: 'CS - Data Structures & Algorithms.pdf',
+    size: '1.9 MB',
+    type: 'CS Course Notes',
+    rawText: `Data Structures & Algorithms Overview:
+- Binary Search Trees (BST) maintain sorted key order allowing O(log N) average time complexity for search, insertion, and deletion operations.
+- Dynamic Programming solves complex optimization problems by breaking them down into overlapping subproblems and storing intermediate results via memoization or tabulation.`
   }
 ];
 
@@ -51,7 +44,8 @@ export const INITIAL_QUESTIONS = [
     question: 'What is the main distinction between Supervised and Unsupervised Learning?',
     marks: 5,
     sampleAnswer: 'Supervised learning uses labeled data to train models, whereas unsupervised learning finds patterns in unlabeled data without predefined target labels.',
-    keyConcepts: ['labeled data', 'unlabeled data', 'target variables', 'patterns']
+    keyConcepts: ['labeled data', 'unlabeled data', 'target variables', 'patterns'],
+    sourceExcerpt: 'Supervised learning uses labeled training data to learn mapping from inputs to outputs. Unsupervised learning finds hidden patterns in unlabeled data.'
   },
   {
     id: 'q2',
@@ -66,7 +60,9 @@ export const INITIAL_QUESTIONS = [
       { id: 'D', text: 'Support Vector Machine' }
     ],
     marks: 2,
-    explanation: 'K-Means is a clustering algorithm operating on unlabeled data, making it unsupervised.'
+    explanation: 'K-Means is a clustering algorithm operating on unlabeled data, making it unsupervised.',
+    keyConcepts: ['K-Means Clustering', 'unlabeled data grouping'],
+    sourceExcerpt: 'Unsupervised learning finds hidden patterns, clusters, or representations in unlabeled data (e.g. K-Means Clustering).'
   },
   {
     id: 'q3',
@@ -76,7 +72,8 @@ export const INITIAL_QUESTIONS = [
     question: 'Explain the working of Gradient Descent algorithm and how learning rate impacts convergence.',
     marks: 10,
     sampleAnswer: 'Gradient descent computes the gradient of the loss function with respect to weights and updates weights in the opposite direction of the gradient. Learning rate scales the step size. Too high causes divergence; too low slows convergence.',
-    keyConcepts: ['gradient computation', 'loss function', 'step size', 'learning rate overshoot/slow']
+    keyConcepts: ['gradient computation', 'loss function', 'step size', 'learning rate overshoot/slow'],
+    sourceExcerpt: 'Gradient Descent is an optimization algorithm used to minimize cost functions by iteratively moving in the direction of steepest descent.'
   },
   {
     id: 'q4',
@@ -86,40 +83,59 @@ export const INITIAL_QUESTIONS = [
     question: 'What is overfitting in machine learning models and how can it be prevented?',
     marks: 5,
     sampleAnswer: 'Overfitting occurs when a model memorizes training data noise. It can be mitigated using regularization (L1/L2), cross-validation, early stopping, or increasing training data.',
-    keyConcepts: ['memorizing noise', 'high variance', 'regularization', 'cross-validation']
-  },
-  {
-    id: 'q5',
-    type: 'MCQ',
-    typeBadge: 'MCQ',
-    bloomsTaxonomy: 'Evaluating',
-    question: 'According to Kaggle Foundational Rules, under what condition is code sharing permissible?',
-    options: [
-      { id: 'A', text: 'Privately via direct message between opposing teams' },
-      { id: 'B', text: 'Publicly on official Kaggle forums under OSI-approved open source license', correct: true },
-      { id: 'C', text: 'Privately with paying corporate sponsors' },
-      { id: 'D', text: 'Any method as long as notice is given after competition ends' }
-    ],
-    marks: 2,
-    explanation: 'Kaggle rules strictly forbid private sharing outside official merged teams, but allow public sharing on Kaggle forums under OSI open source licenses.'
+    keyConcepts: ['memorizing noise', 'high variance', 'regularization', 'cross-validation'],
+    sourceExcerpt: 'Overfitting occurs when a model learns noise and details in training data to the extent that it negatively impacts generalization.'
   }
 ];
 
+// Defensive JSON parsing logic (mirroring prompts.py parse_gemma_json)
+export function parseGemmaJson(rawText) {
+  let text = rawText.trim();
+  text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+  }
+  throw new Error(`Could not parse JSON from Gemma output: ${rawText.substring(0, 200)}`);
+}
+
 export function generateQuestionsFromDoc(docText, bloomsFilter = 'All') {
-  // Simulates Gemma 4 Multimodal Question Generation logic
   let baseQuestions = [...INITIAL_QUESTIONS];
 
-  if (docText.toLowerCase().includes('kaggle') || docText.toLowerCase().includes('eligibility')) {
-    baseQuestions.unshift({
-      id: 'q-kaggle-1',
-      type: 'Short Answer',
-      typeBadge: 'Short Answer',
-      bloomsTaxonomy: 'Analyzing',
-      question: 'Summarize the Kaggle rule regarding private sharing of competition code between separate teams.',
-      marks: 5,
-      sampleAnswer: 'Private sharing of code or data outside of confirmed teams is strictly prohibited and leads to immediate disqualification.',
-      keyConcepts: ['private sharing prohibited', 'disqualification', 'team merger rule', 'public forum requirement']
-    });
+  if (docText.toLowerCase().includes('photosynthesis')) {
+    baseQuestions = [
+      {
+        id: 'q-bio-1',
+        type: 'Short Answer',
+        typeBadge: 'Short Answer',
+        bloomsTaxonomy: 'Understanding',
+        question: 'What are the main outputs of light-driven photosynthesis?',
+        marks: 5,
+        sampleAnswer: 'Glucose (C6H12O6) and Oxygen (O2).',
+        keyConcepts: ['Glucose', 'Oxygen', 'Chemical Energy'],
+        sourceExcerpt: 'Formula: 6CO2 + 6H2O + Light -> C6H12O6 + 6O2.'
+      },
+      {
+        id: 'q-bio-2',
+        type: 'MCQ',
+        typeBadge: 'MCQ',
+        bloomsTaxonomy: 'Remembering',
+        question: 'Where do the light-dependent reactions of photosynthesis take place?',
+        options: [
+          { id: 'A', text: 'Stroma' },
+          { id: 'B', text: 'Thylakoid Membrane', correct: true },
+          { id: 'C', text: 'Mitochondria' },
+          { id: 'D', text: 'Cell Wall' }
+        ],
+        marks: 2,
+        explanation: 'Light-dependent reactions occur in the thylakoid membrane inside chloroplasts.'
+      }
+    ];
   }
 
   if (bloomsFilter !== 'All') {
@@ -162,7 +178,6 @@ export function evaluateStudentAnswers(studentAnswers, questions) {
           : 'Double check option definitions before locking in your choice.'
       });
     } else {
-      // Short / Long Answer NLP evaluation simulation
       const text = (userAnswer || '').toLowerCase();
       let matchCount = 0;
       const concepts = q.keyConcepts || ['key concepts', 'definition'];
@@ -175,7 +190,7 @@ export function evaluateStudentAnswers(studentAnswers, questions) {
       });
 
       let ratio = matchCount / concepts.length;
-      if (text.length > 25 && ratio === 0) ratio = 0.5; // credit for effort
+      if (text.length > 25 && ratio === 0) ratio = 0.5;
       if (text.length === 0) ratio = 0;
 
       const score = Math.round(q.marks * ratio * 10) / 10;

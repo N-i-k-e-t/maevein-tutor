@@ -105,7 +105,7 @@ export default function App() {
       {/* Footer Callout */}
       <footer style={{ borderTop: '1px solid #e2e8f0', padding: '1.5rem 2rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem', background: '#ffffff' }}>
         <p>
-          GemmaTutor (Maevein Tutor Version) — Built with <strong>Gemma 4</strong> by Google DeepMind. 100% Local & Private.
+          Maevein Tutor (GemmaTutor) — Built with <strong>Gemma 4</strong> by Google DeepMind. 100% Local & Private.
         </p>
       </footer>
 
