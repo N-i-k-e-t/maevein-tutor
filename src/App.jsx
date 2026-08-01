@@ -10,7 +10,7 @@ import LearningInsights from './components/LearningInsights';
 import SystemArchitecture from './components/SystemArchitecture';
 import PresentationDeck from './components/PresentationDeck';
 import ModelSettingsModal from './components/ModelSettingsModal';
-import { SAMPLE_DOCUMENTS, INITIAL_QUESTIONS } from './services/gemmaEngine';
+import { SAMPLE_DOCUMENTS, INITIAL_QUESTIONS, generateQuestionsFromDoc } from './services/gemmaEngine';
 import { evaluateAllAnswersViaGemma, detectGemmaModel } from './services/ollamaService';
 
 export default function App() {
@@ -23,10 +23,24 @@ export default function App() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evalProgress, setEvalProgress] = useState({ done: 0, total: 0 });
 
-  // Handlers for step navigation
+  // Update questions whenever document changes
+  const handleSelectDoc = (doc) => {
+    setSelectedDoc(doc);
+    if (doc?.rawText) {
+      const topicQs = generateQuestionsFromDoc(doc.rawText);
+      setQuestions(topicQs);
+    }
+  };
+
   const handleProceedToGenerate = () => {
+    if (selectedDoc?.rawText) {
+      const topicQs = generateQuestionsFromDoc(selectedDoc.rawText);
+      setQuestions(topicQs);
+    }
     setCurrentStep('generate');
   };
+
+
 
   const handleStartTest = () => {
     setCurrentStep('test');
@@ -89,10 +103,11 @@ export default function App() {
         {currentStep === 'upload' && (
           <UploadSection
             selectedDoc={selectedDoc}
-            setSelectedDoc={setSelectedDoc}
+            setSelectedDoc={handleSelectDoc}
             onProceedToGenerate={handleProceedToGenerate}
           />
         )}
+
 
         {currentStep === 'generate' && (
           <QuestionGenerator

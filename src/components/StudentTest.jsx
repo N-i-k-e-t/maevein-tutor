@@ -3,14 +3,18 @@ import { Clock, Award, Bold, Italic, Underline, List, ListOrdered, Send } from '
 
 export default function StudentTest({ questions, onSubmitTest }) {
   const [answers, setAnswers] = useState({});
-  const [secondsLeft, setSecondsLeft] = useState(2730); // 45m 30s
+  const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
+  const initialSeconds = Math.max(900, totalMarks * 120); // 2 minutes per mark, minimum 15 mins
+  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
 
   useEffect(() => {
+    setSecondsLeft(initialSeconds);
     const timer = setInterval(() => {
       setSecondsLeft(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [totalMarks, initialSeconds]);
+
 
   const formatTime = (secs) => {
     const h = Math.floor(secs / 3600);
@@ -23,9 +27,8 @@ export default function StudentTest({ questions, onSubmitTest }) {
     setAnswers(prev => ({ ...prev, [qId]: val }));
   };
 
-  const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
-
   return (
+
     <div className="container" style={{ maxWidth: '950px' }}>
       
       {/* Top Test Header Bar */}
