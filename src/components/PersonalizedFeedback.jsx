@@ -5,40 +5,140 @@ import {
   RotateCcw, BarChart3, ThumbsUp, Brain, TrendingUp, BookOpen, Zap, Target
 } from 'lucide-react';
 
-// ─── Derive AI Learning Report from evaluation ────────────────────────────────
+// ─── Derive 100% Personalized AI Learning Report ────────────────────────────────
 function buildLearningReport(result) {
   if (!result) return null;
   const evals = result.evaluations || [];
 
-  const strengths = evals
-    .filter(e => e.status === 'correct')
-    .flatMap(e => (e._conceptsUnderstood || e.whatYouDidWell?.split('.')[0] ? [e.question?.split(' ').slice(0, 6).join(' ') + '...'] : []));
+  const strengths = [];
+  const weaknesses = [];
 
-  const weaknesses = evals
-    .filter(e => e.status !== 'correct')
-    .map(e => e.conceptToImprove?.split('.')[0] || e.question?.split(' ').slice(0, 6).join(' ') + '...')
-    .filter(Boolean);
+  evals.forEach((e, idx) => {
+    const isUnanswered = e.status === 'unanswered' || !e.userAnswer || e.userAnswer === '(No answer provided)' || e.userAnswer === '(Unanswered / Left Blank)';
+    if (!isUnanswered && (e.status === 'correct' || e.scorePercentage >= 80)) {
+      const conceptStr = (e.matchedConcepts && e.matchedConcepts.length > 0)
+        ? e.matchedConcepts.slice(0, 2).join(', ')
+        : (e.question ? e.question.split(' ').slice(0, 5).join(' ') : `Question ${idx+1}`);
+      strengths.push(`Q${idx+1}: Mastered ${conceptStr}`);
+    } else if (isUnanswered) {
+      const missingStr = (e.missingConcepts && e.missingConcepts.length > 0)
+        ? e.missingConcepts.slice(0, 2).join(', ')
+        : 'Skipped answer';
+      weaknesses.push(`Q${idx+1} Skipped — Missed concepts: ${missingStr}`);
+    } else {
+      const missingStr = (e.missingConcepts && e.missingConcepts.length > 0)
+        ? e.missingConcepts.slice(0, 2).join(', ')
+        : (e.conceptToImprove ? e.conceptToImprove.substring(0, 45) : 'Needs detail');
+      weaknesses.push(`Q${idx+1} Partial — Focus on: ${missingStr}`);
+    }
+  });
 
-  // Build next-path from weakness concepts
-  const topicMap = {
-    gradient: ['Gradient Descent Deep Dive', 'Learning Rate Tuning', 'Adam Optimizer'],
-    overfit: ['Regularization (L1/L2)', 'Cross-Validation', 'Dropout Techniques'],
-    cluster: ['K-Means In Depth', 'DBSCAN', 'Hierarchical Clustering'],
-    photosynthesis: ['Light Reactions Detailed', 'Calvin Cycle Mechanisms', 'Chloroplast Structure'],
-    bst: ['AVL Trees', 'Red-Black Trees', 'B-Trees'],
-    dynamic: ['Memoization Patterns', 'Tabulation Approach', 'Classic DP Problems'],
-    recursion: ['Recursion Trees', 'Tail Recursion', 'Backtracking'],
-  };
-
-  let nextTopics = ['Review Core Concepts', 'Practice Application Problems', 'Test on Related Material'];
-  for (const [key, topics] of Object.entries(topicMap)) {
-    const weakText = weaknesses.join(' ').toLowerCase();
-    if (weakText.includes(key)) { nextTopics = topics; break; }
+  const nextTopics = [];
+  if (weaknesses.length === 0) {
+    nextTopics.push('Advance to higher-order synthesis & complex problem sets');
+    nextTopics.push('Explore real-world case studies & advanced applications');
+    nextTopics.push('Take a timed challenge test on adjacent syllabus topics');
+  } else {
+    evals.forEach((e, idx) => {
+      const isUnanswered = e.status === 'unanswered' || !e.userAnswer || e.userAnswer === '(No answer provided)' || e.userAnswer === '(Unanswered / Left Blank)';
+      if (isUnanswered) {
+        const topMiss = e.missingConcepts?.[0] || 'core section';
+        nextTopics.push(`Re-read source notes on ${topMiss} & attempt Q${idx+1}`);
+      } else if (e.status !== 'correct' && e.scorePercentage < 80) {
+        const topMiss = e.missingConcepts?.[0] || 'key detail';
+        nextTopics.push(`Review ${topMiss} nuances to boost Q${idx+1} clarity`);
+      }
+    });
+    if (nextTopics.length < 3) {
+      nextTopics.push('Re-attempt test after 15-minute focused review session');
+    }
   }
 
   const readiness = result.overallScore || 0;
 
   return { strengths, weaknesses, nextTopics, readiness };
+}
+
+// ─── Interactive Visual Mindmap Component ───────────────────────────────────────
+function PersonalizedMindmap({ evaluations, overallScore }) {
+  if (!evaluations || evaluations.length === 0) return null;
+
+  return (
+    <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '16px', padding: '1.5rem', marginBottom: '1.75rem', color: '#f8fafc' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Brain size={20} style={{ color: '#38bdf8' }} />
+          <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f8fafc' }}>Gemma 4 Personalized Learning Mindmap</span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', fontWeight: 600 }}>
+          <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>● Mastered</span>
+          <span style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>● Partial</span>
+          <span style={{ color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>● Priority Review</span>
+        </div>
+      </div>
+
+      {/* Visual Node Graph */}
+      <div style={{ background: '#1e293b', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+        
+        {/* Root Node */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', padding: '0.6rem 1.25rem', borderRadius: '999px', fontWeight: 800, fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(99,102,241,0.4)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            📖 Study Material Core Concept Map
+          </div>
+        </div>
+
+        {/* Branch Lines Indicator */}
+        <div style={{ textAlign: 'center', color: '#475569', fontSize: '0.75rem', margin: '-0.3rem 0' }}>
+          │ ─── Gemma 4 Performance-Based Knowledge Branches ─── │
+        </div>
+
+        {/* Concept Nodes Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem' }}>
+          {evaluations.map((item, idx) => {
+            const isUnanswered = item.status === 'unanswered' || !item.userAnswer || item.userAnswer === '(No answer provided)' || item.userAnswer === '(Unanswered / Left Blank)';
+            const nodeStatus = isUnanswered ? 'red' : item.status === 'correct' ? 'green' : item.status === 'partial' ? 'yellow' : 'red';
+            const nodeBg = nodeStatus === 'green' ? 'rgba(16,185,129,0.15)' : nodeStatus === 'yellow' ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)';
+            const nodeBorder = nodeStatus === 'green' ? '#10b981' : nodeStatus === 'yellow' ? '#f59e0b' : '#ef4444';
+            const nodeTextColor = nodeStatus === 'green' ? '#34d399' : nodeStatus === 'yellow' ? '#fbbf24' : '#f87171';
+            const badgeIcon = nodeStatus === 'green' ? '✓' : nodeStatus === 'yellow' ? '⚡' : '❌';
+
+            const displayConcepts = (nodeStatus === 'green' ? item.matchedConcepts : item.missingConcepts) || [];
+            const mainLabel = displayConcepts.length > 0 ? displayConcepts.slice(0, 2).join(', ') : `Topic Q${idx+1}`;
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  background: nodeBg,
+                  border: `1.5px solid ${nodeBorder}`,
+                  borderRadius: '12px',
+                  padding: '0.85rem 1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.4rem',
+                  transition: 'transform 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8' }}>Q{idx+1} Concept Node</span>
+                  <span style={{ background: nodeBorder, color: '#0f172a', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900 }}>
+                    {badgeIcon}
+                  </span>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: nodeTextColor }}>
+                  {mainLabel}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                  {nodeStatus === 'green' ? 'Strong understanding' : nodeStatus === 'yellow' ? 'Partial mastery — refine details' : 'Unanswered / Skipped — Priority study'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -162,11 +262,17 @@ export default function PersonalizedFeedback({ evaluationResult, onRetake, onVie
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, fontSize: '0.875rem', marginBottom: '0.75rem', color: '#6ee7b7' }}>
                 <CheckCircle2 size={16} /> Strengths
               </div>
-              {(report.strengths.length > 0 ? report.strengths : ['Good conceptual effort', 'Attempted all questions']).slice(0, 3).map((s, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.82rem', marginBottom: '0.35rem', opacity: 0.9 }}>
-                  <span style={{ color: '#6ee7b7', flexShrink: 0 }}>✓</span> {s}
+              {report.strengths.length > 0 ? (
+                report.strengths.slice(0, 3).map((s, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.82rem', marginBottom: '0.35rem', opacity: 0.9 }}>
+                    <span style={{ color: '#6ee7b7', flexShrink: 0 }}>✓</span> {s}
+                  </div>
+                ))
+              ) : (
+                <div style={{ fontSize: '0.82rem', color: '#fca5a5', fontStyle: 'italic' }}>
+                  ⚠️ No mastered concepts in this test run — full topic review recommended before re-attempting.
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Needs Improvement */}
@@ -174,7 +280,7 @@ export default function PersonalizedFeedback({ evaluationResult, onRetake, onVie
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, fontSize: '0.875rem', marginBottom: '0.75rem', color: '#fcd34d' }}>
                 <Target size={16} /> Needs Improvement
               </div>
-              {(report.weaknesses.length > 0 ? report.weaknesses : ['Deepen conceptual explanations', 'Add source-specific examples']).slice(0, 3).map((w, i) => (
+              {report.weaknesses.slice(0, 3).map((w, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.82rem', marginBottom: '0.35rem', opacity: 0.9 }}>
                   <span style={{ color: '#fcd34d', flexShrink: 0 }}>•</span> {w}
                 </div>
@@ -186,10 +292,10 @@ export default function PersonalizedFeedback({ evaluationResult, onRetake, onVie
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, fontSize: '0.875rem', marginBottom: '0.75rem', color: '#a5b4fc' }}>
                 <TrendingUp size={16} /> Next Learning Path
               </div>
-              {report.nextTopics.map((t, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', marginBottom: '0.35rem', opacity: 0.9 }}>
-                  <span style={{ background: 'rgba(165,180,252,0.3)', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
-                  {t}
+              {report.nextTopics.slice(0, 3).map((t, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.82rem', marginBottom: '0.35rem', opacity: 0.9 }}>
+                  <span style={{ background: 'rgba(165,180,252,0.3)', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0, marginTop: '2px' }}>{i + 1}</span>
+                  <span>{t}</span>
                 </div>
               ))}
             </div>
@@ -215,6 +321,10 @@ export default function PersonalizedFeedback({ evaluationResult, onRetake, onVie
           </div>
         </div>
       )}
+
+      {/* ★ Gemma 4 Personalized Mindmap Graph ★ */}
+      <PersonalizedMindmap evaluations={result.evaluations} overallScore={result.overallScore} />
+
 
       {/* Question-by-Question Feedback */}
       <h3 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 700, marginBottom: '1.25rem', color: '#0f172a' }}>
