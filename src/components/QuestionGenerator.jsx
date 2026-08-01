@@ -16,25 +16,58 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
   const handleGenerateMore = () => {
     setIsGeneratingMore(true);
     setTimeout(() => {
-      const newQuestion = {
-        id: 'q-new-' + Date.now(),
-        type: 'MCQ',
-        typeBadge: 'MCQ',
-        bloomsTaxonomy: 'Applying',
-        question: 'Which clause in the Kaggle rules regulates open-source licensing for publicly shared notebooks?',
-        options: [
-          { id: 'A', text: 'Section 1 Eligibility' },
-          { id: 'B', text: 'Section 6.b Public Code Sharing (OSI-Approved License)', correct: true },
-          { id: 'C', text: 'Section 10 Taxes' },
-          { id: 'D', text: 'Section 17 Employment Contract' }
-        ],
-        marks: 2,
-        explanation: 'Section 6.b dictates that publicly shared code must be licensed under an OSI-approved open source license.'
-      };
+      const docText = (selectedDoc?.rawText || '').toLowerCase();
+      let newQuestion;
+
+      if (docText.includes('photosynthesis')) {
+        newQuestion = {
+          id: 'q-new-' + Date.now(),
+          type: 'Short Answer',
+          typeBadge: 'Short Answer',
+          bloomsTaxonomy: 'Applying',
+          question: 'How does the Calvin Cycle use the products of light-dependent reactions to synthesize glucose?',
+          marks: 5,
+          sampleAnswer: 'The Calvin Cycle uses ATP and NADPH produced during light-dependent reactions to fix CO2 into glucose via the enzyme RuBisCO in the stroma.',
+          keyConcepts: ['ATP', 'NADPH', 'CO2 fixation', 'RuBisCO', 'stroma'],
+          sourceExcerpt: 'Composed of Light-Dependent Reactions (thylakoid membrane) and Calvin Cycle (stroma).'
+        };
+      } else if (docText.includes('algorithm') || docText.includes('data structure')) {
+        newQuestion = {
+          id: 'q-new-' + Date.now(),
+          type: 'MCQ',
+          typeBadge: 'MCQ',
+          bloomsTaxonomy: 'Applying',
+          question: 'What is the average time complexity for search in a balanced Binary Search Tree?',
+          options: [
+            { id: 'A', text: 'O(n)' },
+            { id: 'B', text: 'O(log n)', correct: true },
+            { id: 'C', text: 'O(n²)' },
+            { id: 'D', text: 'O(1)' }
+          ],
+          marks: 2,
+          explanation: 'A balanced BST halves the search space at every node, resulting in O(log n) search time.',
+          keyConcepts: ['balanced BST', 'logarithmic time', 'search'],
+          sourceExcerpt: 'Binary Search Trees (BST) maintain sorted key order allowing O(log N) average time complexity.'
+        };
+      } else {
+        newQuestion = {
+          id: 'q-new-' + Date.now(),
+          type: 'Short Answer',
+          typeBadge: 'Short Answer',
+          bloomsTaxonomy: 'Evaluating',
+          question: 'Compare and contrast the two main learning paradigms discussed in this material.',
+          marks: 5,
+          sampleAnswer: 'Supervised learning requires labeled data and predicts outcomes, while unsupervised learning discovers hidden patterns in unlabeled data.',
+          keyConcepts: ['labeled data', 'unlabeled data', 'prediction', 'patterns'],
+          sourceExcerpt: selectedDoc?.rawText?.substring(0, 150) || 'Source document content.'
+        };
+      }
+
       setQuestions(prev => [...prev, newQuestion]);
       setIsGeneratingMore(false);
     }, 800);
   };
+
 
   const handleExport = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(questions, null, 2));

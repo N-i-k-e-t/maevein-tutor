@@ -41,7 +41,7 @@ export default function UploadSection({ selectedDoc, setSelectedDoc, onProceedTo
           Upload Study Material
         </h2>
         <p style={{ color: '#64748b', fontSize: '1.05rem' }}>
-          Upload your syllabus, lecture notes, competition rules, or any document to begin.
+          Upload your syllabus, lecture notes, or any study document to get started.
         </p>
       </div>
 
