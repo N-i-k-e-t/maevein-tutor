@@ -14,13 +14,30 @@
 ## 🚀 Live Demo & Master Documentation
 
 - **Single Source of Truth Document**: [`MAEVEIN_TUTOR_MASTER_CONTEXT.md`](./MAEVEIN_TUTOR_MASTER_CONTEXT.md)
+- **📊 Technical Benchmark & Validation Report**: [`PROJECT_VALIDATION_REPORT.md`](./PROJECT_VALIDATION_REPORT.md)
 - **Project Assets Directory**: [`Project Assets/`](./Project%20Assets/)
 - **Live Vercel Cloud Link**: [https://maevein-tutor.vercel.app](https://maevein-tutor.vercel.app)
 - **GitHub Repository**: [https://github.com/N-i-k-e-t/maevein-tutor.git](https://github.com/N-i-k-e-t/maevein-tutor.git)
 - **📊 Pitch Deck / Presentation**: [`Project Assets/Presentation/PRESENTATION_DECK.md`](./Project%20Assets/Presentation/PRESENTATION_DECK.md)
 - **📐 System Architecture & Design**: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
 - **🏆 Kaggle Competition Writeup**: [`Project Assets/Kaggle/KAGGLE_SUBMISSION_WRITEUP.md`](./Project%20Assets/Kaggle/KAGGLE_SUBMISSION_WRITEUP.md)
-- **🎬 4-Minute Demo Storyboard**: [`Project Assets/Demo Video/DEMO_VIDEO_STORYBOARD.md`](./Project%20Assets/Demo%20Video/DEMO_VIDEO_STORYBOARD.md)
+
+---
+
+## 🧠 End-to-End AI Learning Engine Architecture
+
+Instead of simple document processing, Maevein Tutor functions as a complete **AI Learning Engine**:
+
+```
+Upload Educational Content ──> Knowledge Extraction ──> Knowledge Map & Rubric
+                                                              │
+                                                              ▼
+Personalized Feedback <── Learning Gap Detection <── Student Evaluation <── Learning Objectives (Bloom's)
+        │
+        ├──> Interactive Knowledge Mindmap Graph
+        └──> Progress Analytics & Assessment History Log
+```
+
 
 
 ---

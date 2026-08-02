@@ -29,7 +29,7 @@ Maevein Tutor bridges the gap between passive content consumption and active, co
 
 ---
 
-## 3. Why This Problem? (The LMS Gap)
+## 3. Why This Problem? (The LMS Gap to AI Learning Engine)
 
 Traditional Learning Management Systems (Canvas, Blackboard, Moodle) suffer from a fundamental architectural flaw:
 
@@ -40,8 +40,21 @@ $$\text{Current LMS Flow: } \text{Static PDF} \longrightarrow \text{Static Exam}
 2. **Marks Without Explanation**: A score of `65%` tells a student *what* they got wrong, but never *why* they got it wrong or *which exact concepts* from the textbook they missed.
 3. **Teacher Overburden**: Educators spend up to 15 hours per week manually writing rubrics and grading essay responses, leaving zero time for individualized tutoring.
 
-### The Maevein Tutor Transformation
-$$\text{Maevein Tutor Flow: } \text{Teacher PDF} \longrightarrow \text{Gemma 4 Synthesis} \longrightarrow \text{Adaptive Exam} \longrightarrow \text{Dual-Call Evaluation} \longrightarrow \text{Visual Mindmap} \longrightarrow \text{Personalized Growth}$$
+### The Maevein Tutor AI Learning Engine Transformation
+Instead of simple document processing, Maevein Tutor operates as an end-to-end **AI Learning Engine**:
+
+```
+Upload Educational Content ──> Knowledge Extraction ──> Knowledge Map & Rubric
+                                                              │
+                                                              ▼
+Personalized Feedback <── Learning Gap Detection <── Student Evaluation <── Learning Objectives (Bloom's)
+        │
+        ├──> Interactive Knowledge Mindmap Graph
+        └──> Progress Analytics & Assessment History Log
+```
+
+> **Detailed Empirical Benchmarks**: See [`PROJECT_VALIDATION_REPORT.md`](./PROJECT_VALIDATION_REPORT.md) for full performance metrics, latency analysis, and dataset validation results.
+
 
 ---
 
