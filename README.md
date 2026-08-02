@@ -14,13 +14,16 @@
 ## 🚀 Live Demo & Master Documentation
 
 - **Single Source of Truth Document**: [`MAEVEIN_TUTOR_MASTER_CONTEXT.md`](./MAEVEIN_TUTOR_MASTER_CONTEXT.md)
+- **💡 Plain English & Layman's Feature Guide**: [`Project Assets/Documentation/LAYMAN_EXPLANATION_AND_FEATURES.md`](./Project%20Assets/Documentation/LAYMAN_EXPLANATION_AND_FEATURES.md)
 - **📊 Technical Benchmark & Validation Report**: [`PROJECT_VALIDATION_REPORT.md`](./PROJECT_VALIDATION_REPORT.md)
+- **📱 Device Capacity & Compatibility Spec**: [`Project Assets/Documentation/DEVICE_CAPACITY_AND_COMPATIBILITY.md`](./Project%20Assets/Documentation/DEVICE_CAPACITY_AND_COMPATIBILITY.md)
 - **Project Assets Directory**: [`Project Assets/`](./Project%20Assets/)
 - **Live Vercel Cloud Link**: [https://maevein-tutor.vercel.app](https://maevein-tutor.vercel.app)
 - **GitHub Repository**: [https://github.com/N-i-k-e-t/maevein-tutor.git](https://github.com/N-i-k-e-t/maevein-tutor.git)
 - **📊 Pitch Deck / Presentation**: [`Project Assets/Presentation/PRESENTATION_DECK.md`](./Project%20Assets/Presentation/PRESENTATION_DECK.md)
 - **📐 System Architecture & Design**: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
 - **🏆 Kaggle Competition Writeup**: [`Project Assets/Kaggle/KAGGLE_SUBMISSION_WRITEUP.md`](./Project%20Assets/Kaggle/KAGGLE_SUBMISSION_WRITEUP.md)
+
 
 ---
 
