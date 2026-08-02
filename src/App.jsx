@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import UploadSection from './components/UploadSection';
@@ -37,18 +37,21 @@ const INITIAL_TEST_HISTORY = [
 ];
 
 export default function App() {
-  const [currentStep, setCurrentStep] = useState('landing');
-  const [selectedDoc, setSelectedDoc] = useState(SAMPLE_DOCUMENTS[0]);
-  const [questions, setQuestions] = useState(INITIAL_QUESTIONS);
+  const [currentStep, setCurrentStep]       = useState('landing');
+  const [selectedDoc, setSelectedDoc]       = useState(null); // no sample auto-selected
+  const [questions, setQuestions]           = useState(INITIAL_QUESTIONS);
   const [studentAnswers, setStudentAnswers] = useState({});
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const [evalProgress, setEvalProgress] = useState({ done: 0, total: 0 });
+  const [isEvaluating, setIsEvaluating]     = useState(false);
+  const [evalProgress, setEvalProgress]     = useState({ done: 0, total: 0 });
 
-  const [studentName, setStudentNameState] = useState(() => {
-    return localStorage.getItem('maevein_student_name') || 'Alex Patel';
-  });
+  // Stores the async loader for PDF pages 11-20
+  const nextBatchLoaderRef = useRef(null);
+
+  const [studentName, setStudentNameState] = useState(
+    () => localStorage.getItem('maevein_student_name') || 'Alex Patel'
+  );
 
   const [testHistory, setTestHistory] = useState(() => {
     try {
@@ -64,31 +67,47 @@ export default function App() {
     localStorage.setItem('maevein_student_name', name);
   };
 
-  // Update questions whenever document changes
+  // ── Background batch loader: fires when user enters the test ──────────────
+  useEffect(() => {
+    if (currentStep !== 'test') return;
+    const loader = nextBatchLoaderRef.current;
+    if (!loader) return;
+
+    loader().then(({ additionalText }) => {
+      if (!additionalText) return;
+      setSelectedDoc(prev => {
+        if (!prev) return prev;
+        const merged = prev.rawText + '\n\n' + additionalText;
+        return { ...prev, rawText: merged, type: prev.type.replace('pages 11-20 load during test', 'pages 11-20 loaded ✓') };
+      });
+      console.log('[Maevein] Background PDF batch (pages 11-20) loaded successfully.');
+    }).catch(err => {
+      console.warn('[Maevein] Background batch load failed:', err);
+    });
+    // Clear so it doesn't re-run
+    nextBatchLoaderRef.current = null;
+  }, [currentStep]);
+
+  // ── Doc selection ─────────────────────────────────────────────────────────
   const handleSelectDoc = (doc) => {
     setSelectedDoc(doc);
-    if (doc?.rawText) {
+    // For sample docs: generate from their text immediately
+    if (doc?.rawText && doc.id !== 'custom-' + Date.now()) {
       const topicQs = generateQuestionsFromDoc(doc.rawText);
       setQuestions(topicQs);
     }
   };
 
   const handleProceedToGenerate = () => {
-    if (selectedDoc?.rawText) {
-      const topicQs = generateQuestionsFromDoc(selectedDoc.rawText);
-      setQuestions(topicQs);
-    }
+    // Don't pre-generate here — QuestionGenerator will call Gemma live if connected
     setCurrentStep('generate');
   };
 
-  const handleStartTest = () => {
-    setCurrentStep('test');
-  };
+  const handleStartTest = () => setCurrentStep('test');
 
   const recordTestHistory = (result) => {
-    const weakList = Array.from(new Set((result.evaluations || []).flatMap(e => e.missingConcepts || [])));
+    const weakList   = Array.from(new Set((result.evaluations || []).flatMap(e => e.missingConcepts || [])));
     const masterList = Array.from(new Set((result.evaluations || []).flatMap(e => e.matchedConcepts || [])));
-    
     const entry = {
       id: 'hist-' + Date.now(),
       studentName,
@@ -99,7 +118,6 @@ export default function App() {
       weakConcepts: weakList,
       masteredConcepts: masterList
     };
-
     setTestHistory(prev => {
       const updated = [entry, ...prev];
       try { localStorage.setItem('maevein_test_history', JSON.stringify(updated)); } catch { /* ignore */ }
@@ -114,7 +132,6 @@ export default function App() {
     setCurrentStep('evaluating');
 
     try {
-      // Try real Gemma evaluation first
       const model = await detectGemmaModel();
       let result;
       if (model) {
@@ -123,7 +140,6 @@ export default function App() {
           (done, total) => setEvalProgress({ done, total })
         );
       } else {
-        // Fallback: local evaluation
         const { evaluateStudentAnswers } = await import('./services/gemmaEngine');
         result = evaluateStudentAnswers(answers, questions);
       }
@@ -132,7 +148,6 @@ export default function App() {
       setCurrentStep('evaluate-dash');
     } catch (err) {
       console.error('Evaluation error:', err);
-      // Last resort fallback
       const { evaluateStudentAnswers } = await import('./services/gemmaEngine');
       const result = evaluateStudentAnswers(answers, questions);
       setEvaluationResult(result);
@@ -143,15 +158,11 @@ export default function App() {
     }
   };
 
-
-  const handleEvaluationComplete = () => {
-    setCurrentStep('feedback');
-  };
+  const handleEvaluationComplete = () => setCurrentStep('feedback');
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Top Header Navigation */}
+
       <Header
         currentStep={currentStep}
         setCurrentStep={setCurrentStep}
@@ -159,8 +170,8 @@ export default function App() {
         studentName={studentName}
       />
 
-      {/* Main Content Step Renderer */}
       <main style={{ flex: 1, paddingBottom: '3rem' }}>
+
         {currentStep === 'landing' && (
           <LandingPage onGetStarted={() => setCurrentStep('upload')} />
         )}
@@ -170,6 +181,7 @@ export default function App() {
             selectedDoc={selectedDoc}
             setSelectedDoc={handleSelectDoc}
             onProceedToGenerate={handleProceedToGenerate}
+            onSetNextBatch={(fn) => { nextBatchLoaderRef.current = fn; }}
           />
         )}
 
@@ -190,6 +202,8 @@ export default function App() {
             onSubmitTest={handleSubmitTest}
             studentName={studentName}
             setStudentName={setStudentName}
+            docTitle={selectedDoc?.title}
+            topics={selectedDoc?.topics || []}
           />
         )}
 
@@ -197,7 +211,7 @@ export default function App() {
           <div className="container" style={{ textAlign: 'center', paddingTop: '4rem' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🧠</div>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#4f46e5', marginBottom: '0.5rem' }}>
-              Gemma 4 is evaluating your answers...
+              Gemma 4 is evaluating your answers…
             </h2>
             <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
               Analysing conceptual understanding · Reasoning over source material · Building your learning report
@@ -235,7 +249,6 @@ export default function App() {
           <LearningInsights studentName={studentName} testHistory={testHistory} />
         )}
 
-
         {currentStep === 'deck' && (
           <PresentationDeck onStartDemo={() => setCurrentStep('upload')} />
         )}
@@ -243,21 +256,14 @@ export default function App() {
         {currentStep === 'architecture' && (
           <SystemArchitecture />
         )}
+
       </main>
 
-      {/* Footer Callout */}
       <footer style={{ borderTop: '1px solid #e2e8f0', padding: '1.5rem 2rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem', background: '#ffffff' }}>
-        <p>
-          Maevein Tutor (GemmaTutor) — Built with <strong>Gemma 4</strong> by Google DeepMind. 100% Local & Private.
-        </p>
+        <p>Maevein Tutor — Built with <strong>Gemma 4</strong> by Google DeepMind. 100% Local &amp; Private.</p>
       </footer>
 
-      {/* Model Settings Modal */}
-      <ModelSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
-
+      <ModelSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }

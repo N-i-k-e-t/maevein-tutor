@@ -14,16 +14,47 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
 
   const pastWeakConcepts = Array.from(new Set(testHistory.flatMap(h => h.weakConcepts || [])));
 
-  // Detect Gemma on mount
+  const checkConnection = async () => {
+    const model = await detectGemmaModel();
+    if (model) {
+      setGemmaModel(model);
+      setGemmaStatus('live');
+    } else {
+      setGemmaStatus('offline');
+    }
+  };
+
+  // Detect Gemma on mount & auto-generate questions when live with a real uploaded doc
   useEffect(() => {
+    let cancelled = false;
     detectGemmaModel().then(model => {
+      if (cancelled) return;
       if (model) {
         setGemmaModel(model);
         setGemmaStatus('live');
+        // Auto-generate from real uploaded doc (not sample docs)
+        const isCustomDoc = selectedDoc?.id?.startsWith('custom-');
+        if (isCustomDoc && selectedDoc?.rawText) {
+          setIsRegenerating(true);
+          const studentProfile = { studentName, weakConcepts: pastWeakConcepts };
+          generateQuestionsViaGemma(selectedDoc.rawText, 5, model, studentProfile)
+            .then(qs => { if (!cancelled) setQuestions(qs); })
+            .catch(() => { /* keep existing questions on failure */ })
+            .finally(() => { if (!cancelled) setIsRegenerating(false); });
+        }
       } else {
         setGemmaStatus('offline');
       }
     });
+    // Poll every 5s
+    const interval = setInterval(() => {
+      detectGemmaModel().then(model => {
+        if (model) { setGemmaModel(model); setGemmaStatus('live'); }
+        else { setGemmaStatus('offline'); }
+      });
+    }, 5000);
+    return () => { cancelled = true; clearInterval(interval); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredQuestions = questions.filter(q => {
@@ -39,7 +70,7 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
     setGemmaError('');
     try {
       const studentProfile = { studentName, weakConcepts: pastWeakConcepts };
-      const newQs = await generateQuestionsViaGemma(selectedDoc.rawText, 5, gemmaModel, studentProfile);
+      const newQs = await generateQuestionsViaGemma(selectedDoc?.rawText, 5, gemmaModel, studentProfile);
       setQuestions(newQs);
     } catch (err) {
       setGemmaError(err.message);
@@ -55,7 +86,7 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
     setGemmaError('');
     try {
       if (gemmaStatus === 'live' && selectedDoc?.rawText) {
-        const extras = await generateQuestionsViaGemma(selectedDoc.rawText, 1, gemmaModel);
+        const extras = await generateQuestionsViaGemma(selectedDoc?.rawText, 1, gemmaModel);
         setQuestions(prev => [...prev, ...extras]);
       } else {
         // Local fallback
@@ -170,11 +201,26 @@ export default function QuestionGenerator({ questions, setQuestions, selectedDoc
             {gemmaStatus === 'live' && <span style={{ color: '#059669', fontWeight: 600, fontSize: '0.85rem' }}>
               <Wifi size={13} style={{ display: 'inline', marginRight: '0.25rem' }} />{gemmaModel} — Live ✓
             </span>}
-            {gemmaStatus === 'offline' && <span style={{ color: '#dc2626', fontSize: '0.85rem' }}>
-              <WifiOff size={13} style={{ display: 'inline', marginRight: '0.25rem' }} />Offline — showing sample questions
-            </span>}
+            {gemmaStatus === 'offline' && (
+              <span style={{ color: '#dc2626', fontSize: '0.85rem' }}>
+                <WifiOff size={13} style={{ display: 'inline', marginRight: '0.25rem' }} />
+                {selectedDoc?.id?.startsWith('custom-')
+                  ? 'Offline — questions from doc text (start ollama serve for Gemma 4)'
+                  : 'Offline — showing pre-loaded sample questions'}
+              </span>
+            )}
           </div>
         </div>
+
+        {gemmaStatus === 'offline' && (
+          <button
+            className="btn btn-secondary"
+            onClick={checkConnection}
+            style={{ fontSize: '0.82rem', padding: '0.45rem 1rem', minHeight: '38px' }}
+          >
+            🔄 Refresh Connection
+          </button>
+        )}
 
         {gemmaStatus === 'live' && (
           <button

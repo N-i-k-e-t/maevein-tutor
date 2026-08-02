@@ -364,51 +364,70 @@ export function evaluateStudentAnswers(studentAnswers, questions) {
           missingConcepts: q.keyConcepts || []
         });
       } else {
-        const text = rawAnswer.toLowerCase();
-        const concepts = q.keyConcepts || ['key concepts', 'definition'];
-        const matched = [];
-        const missing = [];
+        const text = rawAnswer.toLowerCase().trim();
+        const gibberishTokens = ['asdf', 'qwerty', 'idk', 'dunno', 'whatever', 'xyz', '123', 'abc', 'no idea', 'n/a', 'blank', 'random'];
+        const isGibberish = text.length < 3 || gibberishTokens.includes(text);
 
-        concepts.forEach(concept => {
-          const words = concept.split(' ').filter(w => w.length > 3);
-          if (words.some(w => text.includes(w.toLowerCase()))) {
-            matched.push(concept);
-          } else {
-            missing.push(concept);
-          }
-        });
+        if (isGibberish) {
+          detailedEvaluations.push({
+            questionId: q.id,
+            question: q.question,
+            userAnswer: rawAnswer,
+            correctAnswer: q.sampleAnswer || 'See key concepts.',
+            status: 'incorrect',
+            scorePercentage: 0,
+            whatYouDidWell: 'Answer marked as random placeholder or incomplete text.',
+            conceptToImprove: `Random answers receive 0 points. Required concepts: ${(q.keyConcepts || []).join(', ')}`,
+            suggestion: 'Provide a complete conceptual answer explaining the core principles.',
+            matchedConcepts: [],
+            missingConcepts: q.keyConcepts || []
+          });
+        } else {
+          const concepts = q.keyConcepts || ['key concepts', 'definition'];
+          const matched = [];
+          const missing = [];
 
-        const ratio = concepts.length === 0 ? 0.6 : Math.min(matched.length / concepts.length, 1);
-        const score = Math.round(q.marks * ratio * 10) / 10;
-        totalPointsEarned += score;
+          concepts.forEach(concept => {
+            const words = concept.split(' ').filter(w => w.length > 3);
+            if (words.some(w => text.includes(w.toLowerCase()))) {
+              matched.push(concept);
+            } else {
+              missing.push(concept);
+            }
+          });
 
-        let status = 'correct';
-        if (ratio < 0.4) status = 'incorrect';
-        else if (ratio < 0.85) status = 'partial';
+          const ratio = concepts.length === 0 ? 0 : Math.min(matched.length / concepts.length, 1);
+          const score = Math.round(q.marks * ratio * 10) / 10;
+          totalPointsEarned += score;
 
-        detailedEvaluations.push({
-          questionId: q.id,
-          question: q.question,
-          userAnswer: rawAnswer,
-          correctAnswer: q.sampleAnswer || 'See key concepts.',
-          status,
-          scorePercentage: Math.round(ratio * 100),
-          whatYouDidWell: status === 'correct'
-            ? 'Great job! You clearly articulated the core principles with precise terminology.'
-            : status === 'partial'
-            ? `Captured key aspects: ${matched.join(', ')}`
-            : 'Response submitted focusing on the topic.',
-          conceptToImprove: status === 'correct'
-            ? 'No major gaps. You can refine your answer with a real-world edge case example.'
-            : status === 'partial'
-            ? `Elaborate more on: ${missing.join(', ')} to achieve full score.`
-            : `Needs improvement in covering core definitions: ${missing.join(', ')}.`,
-          suggestion: status === 'correct'
-            ? 'Keep up the excellent work! Try tackling higher Bloom taxonomy synthesis tasks.'
-            : 'Review the lecture notes on this unit and try rewriting your answer.',
-          matchedConcepts: matched,
-          missingConcepts: missing
-        });
+          let status = 'correct';
+          if (ratio < 0.35) status = 'incorrect';
+          else if (ratio < 0.85) status = 'partial';
+
+          detailedEvaluations.push({
+            questionId: q.id,
+            question: q.question,
+            userAnswer: rawAnswer,
+            correctAnswer: q.sampleAnswer || 'See key concepts.',
+            status,
+            scorePercentage: Math.round(ratio * 100),
+            whatYouDidWell: status === 'correct'
+              ? 'Great job! You clearly articulated the core principles with precise terminology.'
+              : status === 'partial'
+              ? `Captured key aspects: ${matched.join(', ')}`
+              : 'Response submitted focusing on the topic.',
+            conceptToImprove: status === 'correct'
+              ? 'No major gaps. You can refine your answer with a real-world edge case example.'
+              : status === 'partial'
+              ? `Elaborate more on: ${missing.join(', ')} to achieve full score.`
+              : `Needs improvement in covering core definitions: ${missing.join(', ')}.`,
+            suggestion: status === 'correct'
+              ? 'Keep up the excellent work! Try tackling higher Bloom taxonomy synthesis tasks.'
+              : 'Review the lecture notes on this unit and try rewriting your answer.',
+            matchedConcepts: matched,
+            missingConcepts: missing
+          });
+        }
       }
     }
   });

@@ -13,12 +13,14 @@
 
 const OLLAMA_BASE = 'http://localhost:11434';
 
-// Model preference order:
-// 1. gemma3-tutor  — custom 1B model, fits GTX 1650 4GB, fast GPU inference
-// 2. gemma3:4b     — quality fallback, confirmed working
-// 3. gemma3 / gemma2 — generic fallbacks
-// NOTE: gemma4 8B crashes on GTX 1650 (GGML graph splitter bug, needs >4GB VRAM)
-const MODEL_PRIORITY = ['gemma3-tutor', 'gemma3:4b', 'gemma3', 'gemma2'];
+// Model preference order (Gemma 4 models prioritized):
+// 1. gemma4-tutor  — custom Gemma 4 model
+// 2. gemma4        — standard Gemma 4 model
+// 3. gemma3-tutor  — custom 1B model, fast GPU inference
+// 4. gemma3:1b     — Gemma 3 1B lightweight model
+// 5. gemma3:4b     — Gemma 3 4B model
+// 6. gemma3 / gemma2 — generic fallbacks
+const MODEL_PRIORITY = ['gemma4-tutor', 'gemma4', 'gemma3-tutor', 'gemma3:1b', 'gemma3:4b', 'gemma3', 'gemma2'];
 
 // ─────────────────────────────────────────────
 // Internal helpers
@@ -418,8 +420,27 @@ export async function evaluateAnswerViaGemma(question, studentAnswer, model) {
       understood: [],
       gaps: question.keyConcepts || [],
       whatYouDidWell: 'No response submitted for this question.',
-      conceptToImprove: `Question was skipped. Required concepts: ${(question.keyConcepts || []).join(', ')}`,
+      conceptToImprove: `Question was left blank. Required concepts: ${(question.keyConcepts || []).join(', ')}`,
       suggestion: 'Attempt all questions to test your conceptual understanding.',
+      matched_concepts: [],
+      missing_concepts: question.keyConcepts || []
+    };
+  }
+
+  // Anti-Gibberish / Random Answer Pre-filter
+  const cleanAnswer = answer.toLowerCase().trim();
+  const gibberishTokens = ['asdf', 'qwerty', 'idk', 'dunno', 'whatever', 'xyz', '123', 'abc', 'no idea', 'n/a', 'blank', 'random'];
+  const isTooShortOrGibberish = cleanAnswer.length < 3 || gibberishTokens.includes(cleanAnswer);
+
+  if (isTooShortOrGibberish) {
+    return {
+      status: 'incorrect',
+      score_percent: 0,
+      understood: [],
+      gaps: question.keyConcepts || [],
+      whatYouDidWell: 'Response received but marked as random placeholder/incomplete text.',
+      conceptToImprove: `Random or placeholder answers receive 0 points. Core concepts required: ${(question.keyConcepts || []).join(', ')}`,
+      suggestion: 'Write a full explanation demonstrating understanding of the topic.',
       matched_concepts: [],
       missing_concepts: question.keyConcepts || []
     };

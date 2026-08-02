@@ -1,104 +1,175 @@
 import React, { useState } from 'react';
-import { Upload, FileText, CheckCircle2, Sparkles, ArrowRight, BookOpen, Layers } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, Sparkles, ArrowRight, Layers, Loader, BookOpen } from 'lucide-react';
 import { SAMPLE_DOCUMENTS } from '../services/gemmaEngine';
+import { extractPdfTextChunked } from '../services/pdfExtractor';
 
-export default function UploadSection({ selectedDoc, setSelectedDoc, onProceedToGenerate }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [customFileName, setCustomFileName] = useState('');
-  const [customFileText, setCustomFileText] = useState('');
+export default function UploadSection({ selectedDoc, setSelectedDoc, onProceedToGenerate, onSetNextBatch }) {
+  const [isDragging, setIsDragging]   = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractStatus, setExtractStatus] = useState('');
 
   const handleSelectSample = (doc) => {
     setSelectedDoc(doc);
-    setCustomFileName('');
+    // Clear any pending batch from previous custom upload
+    if (onSetNextBatch) onSetNextBatch(null);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+  const processFile = async (file) => {
+    if (!file) return;
+
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    setIsExtracting(true);
+    setExtractStatus(isPdf
+      ? '⚡ Parallel multi-agent worker: extracting first 10 pages…'
+      : '📄 Reading text document…'
+    );
+
+    if (isPdf) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target.result;
-        const newDoc = {
+      reader.onload = async (evt) => {
+        try {
+          const { fullText, totalPages, extractedPagesCount, topics, loadNextBatch } =
+            await extractPdfTextChunked(evt.target.result);
+
+          const newDoc = {
+            id: 'custom-' + Date.now(),
+            title: file.name,
+            size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+            type: totalPages > 10
+              ? `PDF · Pages 1-10 of ${totalPages} (pages 11-20 load during test)`
+              : `PDF · ${extractedPagesCount} page${extractedPagesCount !== 1 ? 's' : ''} extracted`,
+            rawText: fullText,
+            pageCount: totalPages,
+            topics: topics || []
+          };
+
+          setSelectedDoc(newDoc);
+
+          // Hand the background-batch loader up to App so it can fire during the test
+          if (onSetNextBatch) onSetNextBatch(loadNextBatch || null);
+
+          if (totalPages > 10) {
+            setExtractStatus(`✅ Pages 1-10 ready (${totalPages - 10} more pages will load in background during your test)`);
+          } else {
+            setExtractStatus('');
+          }
+        } catch (err) {
+          console.warn('PDF extraction error, falling back to text:', err);
+          const textReader = new FileReader();
+          textReader.onload = (e) => {
+            setSelectedDoc({
+              id: 'custom-' + Date.now(),
+              title: file.name,
+              size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+              type: 'Uploaded Document',
+              rawText: e.target.result || 'Extracted content.',
+              topics: []
+            });
+          };
+          textReader.readAsText(file);
+          setExtractStatus('');
+        } finally {
+          setIsExtracting(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setSelectedDoc({
           id: 'custom-' + Date.now(),
           title: file.name,
           size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
-          type: 'Uploaded Document',
-          rawText: text || 'Extracted document content.'
-        };
-        setSelectedDoc(newDoc);
-        setCustomFileName(file.name);
+          type: 'Text Document',
+          rawText: evt.target.result || '',
+          topics: []
+        });
+        setIsExtracting(false);
+        setExtractStatus('');
+        if (onSetNextBatch) onSetNextBatch(null);
       };
       reader.readAsText(file);
     }
   };
 
+  const handleFileUpload = (e) => processFile(e.target.files[0]);
+
   return (
     <div className="container" style={{ maxWidth: '900px' }}>
-      
+
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <h2 style={{ fontSize: '2.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
           Upload Study Material
         </h2>
         <p style={{ color: '#64748b', fontSize: '1.05rem' }}>
-          Upload your syllabus, lecture notes, or any study document to get started.
+          Upload your syllabus, lecture notes, or any PDF — up to 20 pages processed.
+        </p>
+        <p style={{ color: '#a78bfa', fontSize: '0.85rem', marginTop: '0.35rem' }}>
+          First 10 pages generate questions instantly. Pages 11-20 load in the background during your test.
         </p>
       </div>
 
-      {/* Drag & Drop Upload Zone */}
-      <div 
+      {/* Drop Zone */}
+      <div
         className={`dropzone ${isDragging ? 'active' : ''}`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={(e) => {
           e.preventDefault();
           setIsDragging(false);
-          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const file = e.dataTransfer.files[0];
-            setSelectedDoc({
-              id: 'custom-' + Date.now(),
-              title: file.name,
-              size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
-              type: 'Uploaded Document',
-              rawText: 'Extracted uploaded document content.'
-            });
-          }
+          if (e.dataTransfer.files?.[0]) processFile(e.dataTransfer.files[0]);
         }}
-        style={{ marginBottom: '2rem' }}
+        style={{ marginBottom: '2rem', position: 'relative' }}
       >
         <div style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '16px',
-          background: '#e0e7ff',
-          color: '#4f46e5',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          width: '64px', height: '64px', borderRadius: '16px',
+          background: '#e0e7ff', color: '#4f46e5',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 1.25rem auto'
         }}>
-          <FileText size={32} />
+          {isExtracting ? <Loader size={32} className="animate-spin" /> : <FileText size={32} />}
         </div>
 
         <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-          Drag & drop your PDF or document here
+          {isExtracting ? 'Extracting PDF text in parallel…' : 'Drag & drop your PDF or document here'}
         </h3>
-        <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-          Supports PDFs, DOCX, and TXT files up to 50MB
-        </p>
 
-        <label className="btn btn-primary" style={{ cursor: 'pointer' }}>
-          <Upload size={18} /> Choose File
-          <input type="file" accept=".pdf,.txt,.docx" onChange={handleFileUpload} style={{ display: 'none' }} />
-        </label>
+        {isExtracting ? (
+          <p style={{ color: '#6366f1', fontSize: '0.875rem', marginBottom: '1.5rem', fontWeight: 600 }}>
+            {extractStatus}
+          </p>
+        ) : (
+          <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            Parallel page worker · up to 20 pages max · binary PDF decoding
+          </p>
+        )}
+
+        {!isExtracting && (
+          <label className="btn btn-primary" style={{ cursor: 'pointer' }}>
+            <Upload size={18} /> Choose File
+            <input type="file" accept=".pdf,.txt,.docx" onChange={handleFileUpload} style={{ display: 'none' }} />
+          </label>
+        )}
       </div>
 
-      {/* Sample Documents Presets */}
+      {/* Extract-status banner (persists after extraction if >10 pages) */}
+      {extractStatus && !isExtracting && (
+        <div style={{
+          background: '#ede9fe', border: '1px solid #a78bfa', borderRadius: '10px',
+          padding: '0.75rem 1.25rem', marginBottom: '1.5rem',
+          fontSize: '0.85rem', color: '#5b21b6', fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: '0.5rem'
+        }}>
+          ⏳ {extractStatus}
+        </div>
+      )}
+
+      {/* Sample documents */}
       <div style={{ marginBottom: '2.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontWeight: 600, fontSize: '0.95rem', color: '#475569' }}>
           <Layers size={18} /> Or select pre-loaded study materials:
         </div>
-
         <div className="grid-3">
           {SAMPLE_DOCUMENTS.map((doc) => {
             const isSelected = selectedDoc?.id === doc.id;
@@ -108,12 +179,10 @@ export default function UploadSection({ selectedDoc, setSelectedDoc, onProceedTo
                 onClick={() => handleSelectSample(doc)}
                 className="glass-card"
                 style={{
-                  padding: '1.25rem',
-                  cursor: 'pointer',
+                  padding: '1.25rem', cursor: 'pointer',
                   border: isSelected ? '2px solid #4f46e5' : '1px solid #e2e8f0',
                   background: isSelected ? '#f5f3ff' : '#ffffff',
-                  transition: 'all 0.2s ease',
-                  position: 'relative'
+                  transition: 'all 0.2s ease', position: 'relative'
                 }}
               >
                 {isSelected && (
@@ -128,56 +197,60 @@ export default function UploadSection({ selectedDoc, setSelectedDoc, onProceedTo
                 <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.25rem', color: '#1e293b' }}>
                   {doc.title}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  Size: {doc.size}
-                </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Size: {doc.size}</div>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Selected File Card & Status */}
+      {/* Selected doc preview */}
       {selectedDoc && (
         <div className="glass-card" style={{ padding: '1.5rem', background: '#f8fafc', border: '1px solid #cbd5e1', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-            
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#ef4444', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
                 PDF
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#0f172a' }}>
-                  {selectedDoc.title}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>{selectedDoc.size}</span> • <span>Ready for Gemma 4 Extraction</span>
+                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#0f172a' }}>{selectedDoc.title}</div>
+                <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  {selectedDoc.size} · {selectedDoc.type}
                 </div>
               </div>
             </div>
-
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#16a34a', fontWeight: 600, background: '#dcfce7', padding: '0.4rem 0.9rem', borderRadius: '999px', fontSize: '0.85rem' }}>
-              <CheckCircle2 size={18} /> Upload Complete
+              <CheckCircle2 size={18} /> Ready
             </div>
-
           </div>
 
-          {/* Document Preview Snippet */}
-          <div style={{ marginTop: '1.25rem', padding: '1rem', background: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155', maxHeight: '120px', overflowY: 'auto' }}>
+          {/* Topics extracted */}
+          {selectedDoc.topics?.length > 0 && (
+            <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <BookOpen size={14} style={{ color: '#6366f1' }} />
+              <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>Topics detected:</span>
+              {selectedDoc.topics.map(t => (
+                <span key={t} style={{ fontSize: '0.7rem', background: '#e0e7ff', color: '#4338ca', padding: '0.15rem 0.6rem', borderRadius: '999px', fontWeight: 600 }}>{t}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Content preview */}
+          <div style={{ marginTop: '1.25rem', padding: '1rem', background: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155', maxHeight: '110px', overflowY: 'auto' }}>
             <strong>Extracted Content Preview:</strong>
             <p style={{ marginTop: '0.35rem', fontStyle: 'italic' }}>
-              "{selectedDoc.rawText.substring(0, 300)}..."
+              "{selectedDoc.rawText?.substring(0, 280)}…"
             </p>
           </div>
         </div>
       )}
 
-      {/* Action CTA */}
+      {/* CTA */}
       <div style={{ textAlign: 'center' }}>
         <button
           className="btn btn-primary"
           style={{ padding: '0.9rem 2.5rem', fontSize: '1.1rem' }}
-          disabled={!selectedDoc}
+          disabled={!selectedDoc || isExtracting}
           onClick={onProceedToGenerate}
         >
           <Sparkles size={20} /> Generate Questions with Gemma 4 <ArrowRight size={20} />
