@@ -45,6 +45,9 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEvaluating, setIsEvaluating]     = useState(false);
   const [evalProgress, setEvalProgress]     = useState({ done: 0, total: 0 });
+  const [teacherWisdom, setTeacherWisdom]   = useState(
+    'Encouraging & Constructive: Focus on conceptual understanding, highlight strengths, and provide clear step-by-step guidance.'
+  );
 
   // Stores the async loader for PDF pages 11-20
   const nextBatchLoaderRef = useRef(null);
@@ -137,11 +140,12 @@ export default function App() {
       if (model) {
         result = await evaluateAllAnswersViaGemma(
           answers, questions, model,
-          (done, total) => setEvalProgress({ done, total })
+          (done, total) => setEvalProgress({ done, total }),
+          teacherWisdom
         );
       } else {
         const { evaluateStudentAnswers } = await import('./services/gemmaEngine');
-        result = evaluateStudentAnswers(answers, questions);
+        result = evaluateStudentAnswers(answers, questions, teacherWisdom);
       }
       setEvaluationResult(result);
       recordTestHistory(result);

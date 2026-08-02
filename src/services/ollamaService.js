@@ -296,13 +296,14 @@ Respond with ONLY valid JSON — no markdown fences, no commentary.`;
 /**
  * Generate questions from document text using Gemma.
  *
- * @param {string} docText    - Raw text from uploaded document
- * @param {number} numQ       - Number of questions to generate (default 5)
- * @param {string} model      - Ollama model name (auto-detected if omitted)
+ * @param {string} docText       - Raw text from uploaded document
+ * @param {number} numQ          - Number of questions to generate (default 5)
+ * @param {string} model         - Ollama model name (auto-detected if omitted)
  * @param {object} studentProfile - Optional student profile for personalization
- * @returns {Array}           - Array of question objects ready for the app
+ * @param {string} teacherWisdom - Optional teacher wisdom / teaching style guidance
+ * @returns {Array}              - Array of question objects ready for the app
  */
-export async function generateQuestionsViaGemma(docText, numQ = 5, model = null, studentProfile = null) {
+export async function generateQuestionsViaGemma(docText, numQ = 5, model = null, studentProfile = null, teacherWisdom = null) {
   const resolvedModel = model || await detectGemmaModel();
   if (!resolvedModel) {
     throw new Error('No Gemma model found in Ollama. Run: ollama pull gemma3:4b');
@@ -319,8 +320,13 @@ export async function generateQuestionsViaGemma(docText, numQ = 5, model = null,
       `Ensure at least 1-2 questions directly reinforce these weak concepts grounded in the text.`
     : '';
 
+  const wisdomContext = teacherWisdom
+    ? `\nTEACHER'S WISDOM & STYLE GUIDELINES:\n"${teacherWisdom}"\nAdopt this exact teaching style and question difficulty tone.`
+    : '';
+
   const userPrompt = `Read the following study material and write exactly ${numQ} questions.
 ${studentContext}
+${wisdomContext}
 
 For EACH question provide:
 - "type": one of "MCQ", "Short Answer", or "Long Answer"
@@ -407,9 +413,10 @@ Respond with ONLY valid JSON — no markdown fences, no commentary.`;
  * @param {object} question      - Question object (from generateQuestionsViaGemma)
  * @param {string} studentAnswer - The student's typed answer
  * @param {string} model         - Ollama model name
+ * @param {string} teacherWisdom - Optional teacher wisdom / teaching style guidance
  * @returns {object}             - Evaluation result object
  */
-export async function evaluateAnswerViaGemma(question, studentAnswer, model) {
+export async function evaluateAnswerViaGemma(question, studentAnswer, model, teacherWisdom = null) {
   const answer = (studentAnswer || '').trim();
 
   // Strict check: If answer is empty or blank, return 0% Unanswered immediately (no LLM call)
@@ -449,6 +456,10 @@ export async function evaluateAnswerViaGemma(question, studentAnswer, model) {
   const resolvedModel = model || await detectGemmaModel();
   if (!resolvedModel) throw new Error('No Gemma model available.');
 
+  const wisdomPrompt = teacherWisdom
+    ? `\nTEACHER'S EVALUATION WISDOM & STYLE:\n"${teacherWisdom}"\nEvaluate and phrase your feedback adopting this exact teaching style and tone.`
+    : '';
+
   const userPrompt = `SOURCE MATERIAL EXCERPT:
 """
 ${question.sourceExcerpt || 'See document.'}
@@ -462,6 +473,7 @@ STUDENT'S ANSWER:
 """
 ${answer}
 """
+${wisdomPrompt}
 
 Evaluate the student's answer against the key concepts and source material. \
 Do not penalize grammar or phrasing — grade understanding only. \
@@ -499,9 +511,10 @@ Respond with ONLY this JSON, no other text:
  * @param {Array}  questions       - Array of question objects
  * @param {string} model           - Ollama model
  * @param {function} onProgress    - Called with (doneCount, totalCount) per question
+ * @param {string} teacherWisdom   - Optional teacher wisdom / teaching style guidance
  * @returns {object}               - Full evaluation result matching app shape
  */
-export async function evaluateAllAnswersViaGemma(studentAnswers, questions, model, onProgress) {
+export async function evaluateAllAnswersViaGemma(studentAnswers, questions, model, onProgress, teacherWisdom = null) {
   const resolvedModel = model || await detectGemmaModel();
   const detailedEvaluations = [];
   let totalPointsEarned = 0;
